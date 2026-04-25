@@ -179,6 +179,21 @@ box-shadow: rgba(0,0,0,0.08) 0 4px 24px;
 
 ---
 
+## 异常处理
+
+**每个步骤失败时的回退路径，必须遵守：**
+
+| 异常情况 | 处理方式 |
+|---|---|
+| `r.jina.ai` 抓取失败（超时/403） | 告知用户并请求：「请将正文内容粘贴到对话中」，不要捏造内容 |
+| 截图脚本报错（Chromium 找不到） | 提示：`bunx playwright install chromium` 后重试；同时告知 HTML 已保存路径 |
+| 字体文件不存在（`assets/` 路径缺失） | HTML 降级到 `Georgia, 'Times New Roman', serif`，提示用户字体文件路径有误 |
+| 内容过长（原文 > 3000 字） | 先自动压缩：只保留核心论点 + 数据 + 反转点，要点上限 6 条，不询问用户 |
+| 内容过短（< 50 字） | 直接询问用户：「内容较少，是否补充背景或希望我补全创作？」 |
+| 用户未回答格式确认问题（3 轮内无回应） | 直接按主推荐格式生成，在 HTML 注释中写明「按默认主推荐生成」 |
+
+---
+
 ## 内容提炼规则
 
 ### 只保留「删掉就会损失信息」的内容
@@ -384,15 +399,42 @@ Feature 风格，需要头图区域？
 
 生成**完整自包含** HTML 文件：
 - 所有样式内联，不依赖外部 CSS / JS
-- 使用本地字体（\`TsangerJinKai02-W04.ttf\`、\`NotoSerifSC-Regular.ttf\`），路径：\`assets/\`，通过 \`@font-face\` 加载
+- 使用本地字体（`TsangerJinKai02-W04.ttf`、`NotoSerifSC-Regular.ttf`），通过 `@font-face` 加载
 - 卡片宽度与格式尺寸匹配
-- 底部包含一键保存 PNG 按钮（浏览器直接打开可用）
+- 底部包含一键保存 PNG 按鈕（浏览器直接打开可用）
 
-### Step 5：保存 HTML
+**字体路径规则（重要）**：`@font-face` 中的 `src: url()` 必须使用 **`file://` 绝对路径**。
+相对路径在 Playwright 截图时无效（Chromium 沙笼阻止加载）。
+
+```css
+/* ✅ 正确：截图和浏览器均可用 */
+@font-face {
+  font-family: 'TsangerJinKai02';
+  src: url('file:///绝对路径/assets/TsangerJinKai02-W04.ttf');
+}
+/* ❌ 错误：浏览器可用，截图时字体失效 */
+@font-face {
+  font-family: 'TsangerJinKai02';
+  src: url('assets/TsangerJinKai02-W04.ttf');
+}
+```
+
+> 完整设计规范参见 [`references/design-spec.md`](references/design-spec.md)（CSS 变量、格式尺寸、SVG 快查表）。
+### Step 5：保存 HTML 并通知用户
 
 \`\`\`
 默认路径：/tmp/claude-card-[关键词].html
 \`\`\`
+
+**保存后必须输出预览提示，然后等用户确认：**
+
+\`\`\`
+✅ HTML 已生成：/tmp/claude-card-[关键词].html
+可在浏览器中打开预览。确认布局 OK 后回复「截图」，我立即生成 PNG。
+如需调整（字号 / 配色 / 内容），现在告诉我。
+\`\`\`
+
+> 若用户说「截图」「继续」「OK」或静默 1 轮，直接进入 Step 6，无需再次确认。
 
 ### Step 6：截图生成 PNG
 
