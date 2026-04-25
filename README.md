@@ -1,21 +1,53 @@
+<div align="center">
+
 # claude-design-card
 
-> Claude 设计语言驱动的卡片生成技能 — 14 种格式，一套审美标准。
+**14 种格式，一套审美标准 — Claude 设计语言驱动的卡片生成技能**
 
-将任意文本、网页或 URL 转化为精致的可发布卡片，涵盖平台封面、社交分享卡、长文编辑排版。所有卡片严格遵循 [Claude/Anthropic 设计系统](DESIGN.md)：Parchment 暖色基调、Georgia 衬线字体、Terracotta 强调色。
+<img src="assets/banner.png" alt="claude-design-card — Claude 设计语言驱动的卡片生成技能" width="100%">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6.svg)](https://www.typescriptlang.org/)
+[![Bun](https://img.shields.io/badge/Bun-1.x-fbf0df.svg)](https://bun.sh/)
+[![Playwright](https://img.shields.io/badge/Playwright-1.59-45ba4b.svg)](https://playwright.dev/)
+
+</div>
 
 ---
 
-## 快速开始
+## 这是什么
 
-### 安装依赖
+将任意文本、网页或 URL 转化为精致的可发布卡片，覆盖平台封面、社交分享、长文编辑排版。所有卡片严格遵循 [Claude/Anthropic 设计系统](DESIGN.md)：Parchment 暖色基调、Georgia 衬线字体、Terracotta 强调色，14 种格式一套审美标准。
+
+```
+输入：一段文字 / URL / 数据
+输出：/tmp/claude-card-*.png（像素精准的设计卡片）
+```
+
+---
+
+## 核心特性
+
+<img src="assets/features.png" alt="claude-design-card 核心特性 — 14种格式族、Claude设计语言、SVG系统、长文排版、Playwright截图、自然语言触发" width="100%">
+
+---
+
+## 工作流程
+
+<img src="assets/workflow.png" alt="claude-design-card 工作流程 — 内容解析、格式选择、卡片生成、截图输出" width="100%">
+
+---
+
+## 安装
 
 ```bash
 bun install
 bunx playwright install chromium
 ```
 
-### 截图生成
+---
+
+## 快速上手
 
 ```bash
 # 固定尺寸（平台封面、内容卡）
@@ -25,7 +57,8 @@ bun scripts/screenshot.ts <input.html> [output.png] [width] [height]
 bun scripts/screenshot.ts <input.html> [output.png] [width] --full-page
 ```
 
-**示例：**
+示例：
+
 ```bash
 # 公众号首图 900×383
 bun scripts/screenshot.ts /tmp/card.html /tmp/cover.png 900 383
@@ -36,7 +69,7 @@ bun scripts/screenshot.ts /tmp/card.html /tmp/xiaohongshu.png 1080 1440
 # The Broadsheet 长文排版（自动高度）
 bun scripts/screenshot.ts /tmp/broadsheet.html /tmp/broadsheet.png 800 --full-page
 
-# 默认输出路径（/tmp/claude-card-<basename>.png）
+# 省略输出路径 → /tmp/claude-card-<basename>.png
 bun scripts/screenshot.ts /tmp/my-card.html
 ```
 
@@ -58,7 +91,7 @@ bun scripts/screenshot.ts /tmp/my-card.html
 | 格式 | 尺寸 | 特征 |
 |---|---|---|
 | 小红书图文笔记 | 1080 × 1440 px | 分层标签 + 图文混排 |
-| 步骤教程卡 | 1080 × 1440 px | 编号步骤 + 进度条 SVG |
+| 步骤教程卡 | 1080 × 1440 px | 编号步骤 + SVG 进度条 |
 | 对比分析卡 | 1080 × 1440 px | 双列对比，Terracotta 高亮胜出方 |
 
 ### 格式族 C — 社交分享卡
@@ -82,7 +115,7 @@ bun scripts/screenshot.ts /tmp/my-card.html
 
 ## 设计系统
 
-所有卡片使用统一的 Claude 设计 Token：
+所有卡片使用统一的 Claude 设计 Token，详见 [DESIGN.md](DESIGN.md) 和 [references/design-spec.md](references/design-spec.md)。
 
 | Token | 色值 | 用途 |
 |---|---|---|
@@ -94,41 +127,7 @@ bun scripts/screenshot.ts /tmp/my-card.html
 | `--og` Olive-Gray | `#5e5d59` | 副文本 |
 | `--sg` Stone-Gray | `#87867f` | 元信息 |
 
-**字体**：Georgia（衬线，标题/正文）+ system-ui（UI/标签）  
-**禁止**：冷色调蓝灰、纯白 `#ffffff`、`font-weight: 700`
-
-详见 [DESIGN.md](DESIGN.md) 和 [references/design-spec.md](references/design-spec.md)。
-
----
-
-## SVG 设计系统
-
-卡片可包含最多 3 种 SVG 类型：
-
-| 类型 | 功能 |
-|---|---|
-| A 排版装饰器 | 含节点的分割线 |
-| B 大号引言符 | Georgia 大引号，opacity 0.07-0.12 |
-| C 编辑插图 | 纯几何，传达文章隐喻 |
-| D 数据可视化 | 折线/进度条 + stroke-dasharray 动画 |
-| E 图案底纹 | `<pattern>` 网点，opacity 0.05-0.08 |
-
----
-
-## 项目结构
-
-```
-claude-design-card/
-├── SKILL.md                    # 主技能定义（AI Agent 读取）
-├── DESIGN.md                   # Claude 设计系统规范（权威，禁止修改）
-├── assets/
-│   ├── TsangerJinKai02-W04.ttf
-│   └── NotoSerifSC-Regular.ttf
-├── scripts/
-│   └── screenshot.ts           # Playwright 截图脚本（Bun 运行）
-└── references/
-    └── design-spec.md          # 设计规范详细参考
-```
+字体：Georgia（衬线，标题/正文）+ system-ui（UI/标签）。禁止冷色调蓝灰、纯白 `#ffffff`、`font-weight: 700`。
 
 ---
 
@@ -143,14 +142,18 @@ claude-design-card/
 把这篇长文做成 The Broadsheet 编辑排版
 ```
 
-技能会自动：
-1. 分析内容，选择合适格式
-2. 提炼关键信息（不编造）
-3. 生成符合 Claude 设计语言的 HTML
-4. 调用截图脚本输出 PNG 到 `/tmp/`
+技能自动完成：分析内容 → 选择格式 → 提炼关键信息（不编造）→ 生成 HTML → 截图输出至 `/tmp/`。
 
 ---
 
-## License
+## 许可证
 
-MIT
+[MIT](./LICENSE) — 自由使用、修改、分发。
+
+---
+
+## 关于作者
+
+| | |
+|:---|:---|
+| GitHub | [geekjourneyx](https://github.com/geekjourneyx) |
