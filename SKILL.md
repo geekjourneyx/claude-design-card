@@ -2,7 +2,7 @@
 name: claude-design-card
 description: |
   将任意文本、网页或 URL 生成符合 Claude/Anthropic 设计语言的 HTML 信息卡片，通过 Playwright 截图为 PNG。
-  支持 16 种格式：平台封面（公众号、视频号、B站、抖音）、图文内容卡（小红书、教程、对比分析）、
+  支持 14 种格式：平台封面（公众号、视频号、B站、抖音）、图文内容卡（小红书、教程、对比分析）、
   社交分享卡（金句、数据、方形）、长文编辑排版（Broadsheet、Feature、Reader、Digest）。
   当用户提到「信息卡、卡片、封面、图文笔记、排版、截图、生成图、内容卡」时使用本技能。
 ---
@@ -46,6 +46,19 @@ line-height: 1.60;
 
 /* Kicker/标签：全大写，小字号，字间距 */
 font-size: 9px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;
+\`\`\`
+
+### 字号参考（按格式宽度缩放）
+
+\`\`\`css
+/* 1080px 宽（平台封面、内容卡、分享卡）*/
+/* 主标题: 48-56px, 副标题: 20-24px, 正文: 16-18px */
+
+/* 900px 宽（公众号首图）*/
+/* 主标题: 40-48px, 正文: 15-16px */
+
+/* 800px 以下（长文编辑排版）*/
+/* 主标题: 32-36px, 正文: 17px, 副文本: 13px */
 \`\`\`
 
 ### 阴影规则
@@ -116,7 +129,7 @@ box-shadow: rgba(0,0,0,0.08) 0 4px 24px;
 | 新闻 / 评论 | The Broadsheet | The Feature | 字数多不多 |
 | 随笔 / 散文 | The Reader | The Feature | 有没有注释需要 |
 | 研究 / 分析报告 | The Digest | 对比分析卡 | 数据量 |
-| 视频内容 | 视频号竖封面 / B站横封面 | — | 平台 |
+| 视频内容 | 视频号竖封面（默认） | B站/YouTube 横封面 | 先问平台：微信 or B站/YouTube |
 | 公众号配图 | 公众号首图 | 视频号竖封面 | 是否作为题图 |
 | 抖音/故事 | 抖音全屏竖版 | — | 是否要保留品牌 |
 
@@ -137,7 +150,7 @@ box-shadow: rgba(0,0,0,0.08) 0 4px 24px;
 
 1. 判断内容类型、信息密度和目标平台。
 2. 给出 1 个主推荐 + 2 个备选，说明每个适合的原因。
-3. 问 1-2 个会改变结果的关键问题（最多 3 个）：
+3. 问最多 3 个会改变结果的关键问题（优先 1-2 个）：
    - 目标平台（微信 / 小红书 / B站 / 通用）
    - 希望阅读型还是传播型
    - 是否有品牌色要求
@@ -147,11 +160,22 @@ box-shadow: rgba(0,0,0,0.08) 0 4px 24px;
 ### 风格建议格式
 
 每次先给：
-- 推荐格式 + 尺寸
-- 适用理由
+- 推荐格式 + 尺寸 + 适用理由（一句话说明为什么）
 - 备选一 + 适用理由
 - 备选二 + 适用理由
 - 默认分支：如不选则按主推荐
+
+---
+
+## 输入处理
+
+| 输入类型 | 处理方式 |
+|---|---|
+| 纯文本 | 直接进入内容提炼 |
+| URL（通用网页） | 用 \`r.jina.ai/[url]\` 抓取为 Markdown |
+| \`arxiv.org/abs/\` | 先尝试 HTML 版全文，回退 PDF |
+| \`mp.weixin.qq.com\` | 用 r.jina.ai 抓取，保留原文结构 |
+| \`x.com\` / \`twitter.com\` | 用 \`r.jina.ai/[url]\` 抓取 |
 
 ---
 
@@ -363,7 +387,6 @@ Feature 风格，需要头图区域？
 - 使用本地字体（\`TsangerJinKai02-W04.ttf\`、\`NotoSerifSC-Regular.ttf\`），路径：\`skills/claude-design-card/assets/\`，通过 \`@font-face\` 加载
 - 卡片宽度与格式尺寸匹配
 - 底部包含一键保存 PNG 按钮（浏览器直接打开可用）
-- SVG 动画在截图前已完成（通过 waitForTimeout 保证）
 
 ### Step 5：保存 HTML
 
@@ -379,6 +402,8 @@ bun scripts/screenshot.ts /tmp/claude-card-[关键词].html [output.png] [width]
 
 # 长文编辑排版（自动高度）：
 bun scripts/screenshot.ts /tmp/claude-card-[关键词].html [output.png] [width] --full-page
+
+# 脚本内部已设置 waitForTimeout(3000)，确保 SVG 动画在截图前完成
 \`\`\`
 
 默认输出：\`/tmp/claude-card-[关键词].png\`
