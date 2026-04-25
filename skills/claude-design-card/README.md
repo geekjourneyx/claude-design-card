@@ -1,4 +1,4 @@
-# any2card
+# claude-design-card
 
 把任意文本、文章链接或线程内容，转成一张可以直接发布的 HTML 信息卡。
 它的目标不是“做漂亮图片”，而是让卡片本身完成信息传达：先可读，再有审美，再适合传播。
@@ -8,7 +8,7 @@
 通过 `npx` 安装或同步最新 skill：
 
 ```bash
-npx skills add https://github.com/geekjourneyx/any2card
+npx skills add https://github.com/geekjourneyx/claude-design-card
 ```
 
 ## 快速开始
