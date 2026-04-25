@@ -38,6 +38,17 @@
 
 ---
 
+## 环境依赖
+
+| 依赖 | 版本 | 说明 |
+|------|------|------|
+| [Bun](https://bun.sh) | ≥ 1.0 | 运行时 & 包管理器 |
+| [Playwright](https://playwright.dev) | ≥ 1.59 | Chromium 截图引擎 |
+| TypeScript | ≥ 5.0 | 脚本语言（Bun 原生支持） |
+| Node.js | — | 仅 `npx skills add` 安装时需要 |
+
+---
+
 ## 安装
 
 **作为 AI Skill（推荐）：**
