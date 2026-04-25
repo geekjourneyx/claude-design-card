@@ -35,15 +35,17 @@ DESIGN.md 定义了 Claude/Anthropic 的完整设计系统；本文件定义其�
 ```css
 @font-face {
   font-family: 'TsangerJinKai';
-  src: url('../skills/claude-design-card/assets/TsangerJinKai02-W04.ttf') format('truetype');
+  src: url('file:///[PROJECT_ROOT]/skills/claude-design-card/assets/TsangerJinKai02-W04.ttf') format('truetype');
   font-weight: 400;
 }
 @font-face {
   font-family: 'NotoSerifSC';
-  src: url('../skills/claude-design-card/assets/NotoSerifSC-Regular.ttf') format('truetype');
+  src: url('file:///[PROJECT_ROOT]/skills/claude-design-card/assets/NotoSerifSC-Regular.ttf') format('truetype');
   font-weight: 400;
 }
 ```
+
+> ⚠️ `[PROJECT_ROOT]` 替换为实际绝对路径，Agent 生成时应填入真实路径如 `/Users/xxx/Workspace/web/claude-design-card`
 
 ### 字体分工
 
@@ -68,6 +70,8 @@ DESIGN.md 定义了 Claude/Anthropic 的完整设计系统；本文件定义其�
 | Kicker / 标签 | 9–10px | 1.0，letter-spacing: 1px |
 
 **规则**：标题 `font-weight: 500`，绝不使用 700。
+
+（Claude 品牌规范：保持衬线字体的统一优雅语调，bold 过重会破坏整体气质）
 
 ---
 
@@ -156,7 +160,7 @@ bun scripts/screenshot.ts /tmp/claude-card-broadsheet.html /tmp/broadsheet.png 8
 
 **Drop Cap**：`font-size: 3.8em; float: left; color: var(--tc); line-height: 0.85`
 **Pull Quote**：`column-span: all; border-top: 2px solid var(--nk); padding: 16px 0; font-style: italic`
-**SVG 分割线**：类型 A，宽 210px，三菱构型
+**SVG 分割线**：类型 A，宽 420-480px，居中放置，三菱构型
 
 ### The Feature（杂志深度）
 
@@ -230,7 +234,9 @@ bun scripts/screenshot.ts /tmp/claude-card-broadsheet.html /tmp/broadsheet.png 8
 | D 数据可视化 | 折线/进度/柱状 + 动画 | 正向 terracotta，负向 stone-gray | stroke-dasharray 动画 0.5-1.5s |
 | E 图案底纹 | `<pattern>` 网点或交叉线 | `#c96442` opacity 0.05-0.08 | 单元格 6-10px |
 
-每张卡片最多 3 种 SVG 类型。
+**使用原则**：仅在 CSS 无法实现时引入 SVG（如含中心节点的规则线、大号引言符、叙事性插图）；能用 border-top 实现的分隔线不要使用 SVG 类型 A。
+
+每张卡片最多使用 3 种不同 SVG 类型（如 A+B+D 组合允许，A+B+C+D 四种同时出现则禁止）；同一类型可重复使用 2-3 次。
 
 ---
 
@@ -239,8 +245,9 @@ bun scripts/screenshot.ts /tmp/claude-card-broadsheet.html /tmp/broadsheet.png 8
 1. 内容必须忠实原文，不得编造。
 2. 任何视觉装饰都不能损害可读性。
 3. 卡片必须完全自包含（无外部 CDN 依赖，可离线截图）。
-4. 字体路径必须使用本地文件（`skills/claude-design-card/assets/`）。
+4. 字体路径必须使用绝对 file:// URL（如 file:///绝对路径/skills/claude-design-card/assets/），确保离线截图时字体可用。
 5. 截图前 SVG 动画必须完成（`waitForTimeout(3000)`）。
 6. 所有颜色必须在 Claude token 范围内。
 7. 标题 `font-weight: 500`，绝不使用 700。
 8. 每种格式必须有独立的排版结构，不能只是换色皮肤。
+9. 当提取内容少于 3 个核心点时，优先选择格式 C（方形通用卡）或格式 D（Reader/Digest），不强行拆分以凑数量。
