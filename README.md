@@ -121,15 +121,13 @@ bun scripts/screenshot.ts /tmp/my-card.html
 claude-design-card/
 ├── SKILL.md                    # 主技能定义（AI Agent 读取）
 ├── DESIGN.md                   # Claude 设计系统规范（权威，禁止修改）
+├── assets/
+│   ├── TsangerJinKai02-W04.ttf
+│   └── NotoSerifSC-Regular.ttf
 ├── scripts/
 │   └── screenshot.ts           # Playwright 截图脚本（Bun 运行）
-├── references/
-│   └── design-spec.md          # 设计规范详细参考
-└── skills/claude-design-card/
-    ├── SKILL.md                # 内层技能文件
-    └── assets/
-        ├── TsangerJinKai02-W04.ttf
-        └── NotoSerifSC-Regular.ttf
+└── references/
+    └── design-spec.md          # 设计规范详细参考
 ```
 
 ---
