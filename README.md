@@ -1,166 +1,158 @@
-# any2card
+# claude-design-card
 
-把任意文本、文章链接或线程内容，转成一张可以直接发布的 HTML 信息卡。
-它的目标不是“做漂亮图片”，而是让卡片本身完成信息传达：先可读，再有审美，再适合传播。
+> Claude 设计语言驱动的卡片生成技能 — 14 种格式，一套审美标准。
 
-## 安装
+将任意文本、网页或 URL 转化为精致的可发布卡片，涵盖平台封面、社交分享卡、长文编辑排版。所有卡片严格遵循 [Claude/Anthropic 设计系统](DESIGN.md)：Parchment 暖色基调、Georgia 衬线字体、Terracotta 强调色。
 
-通过 `npx` 安装或同步最新 skill：
-
-```bash
-npx skills add https://github.com/geekjourneyx/any2card
-```
+---
 
 ## 快速开始
 
-1. 准备一段文本或一个 URL。
-2. 先看 skill 给出的主推荐、备选和取舍，再确认偏好。
-3. 让 skill 提炼核心观点、数字和结构。
-4. 选择合适主题家族与模板。
-5. 打开生成的 HTML，在浏览器中保存为 PNG。
+### 安装依赖
 
-## 这能做什么
-
-- 抓取网页、论文、社交线程或纯文本内容。
-- 提炼主标题、副标题、要点、金句和来源。
-- 根据内容密度自动选择合适布局。
-- 生成可直接在浏览器打开的 HTML 卡片。
-- 内置一键保存 PNG 按钮，方便导出分享图。
-
-## 设计目标
-
-这个 skill 不是单纯的排版工具，而是一套原创主题系统。
-它的目标是让同一份内容在不同主题下呈现出不同的构图、节奏和气质，而不是只换颜色。
-
-### 目标线
-
-| 维度 | 目标 |
-|---|---|
-| 原创性 | 9/10 |
-| 主题正交性 | 8.5/10 |
-| 设计辨识度 | 9/10 |
-| 可读性 | 9.5/10 |
-
-## 主题家族
-
-| 家族 | 气质 | 适合内容 |
-|---|---|---|
-| 编辑型 | 纸感、温和、耐读 | 长文、观点、方法论 |
-| 精准型 | 工具化、结构清楚、可执行 | 流程、清单、数据、规范 |
-| 电影型 | 高对比、场景感、戏剧性 | 强结论、品牌、争议话题 |
-| 表达型 | 快速、适合传播、视觉冲击 | 社交传播、合集、热点拆解 |
-
-## 使用流程
-
-1. 输入 URL 或纯文本。
-2. 系统先给出画布比例建议，再给出 1 个主推荐 + 2 个备选，并说明取舍。
-3. 用户确认特殊要求，例如克制 / 张力 / 传播 / 阅读。
-4. 系统提炼核心观点、数字和因果链。
-5. 自动判断是否值得加图。
-6. 选择合适主题家族和模板。
-7. 生成 HTML。
-8. 在浏览器打开并保存为 PNG。
-
-## 输入示例
-
-```text
-把这篇文章做成信息卡
-https://x.com/...
-把这段内容整理成适合小红书的卡片
+```bash
+bun install
+bunx playwright install chromium
 ```
 
-## 内容提炼原则
+### 截图生成
 
-- 标题必须是结论，不是背景说明。
-- 只保留会影响理解的内容。
-- 4-6 个要点通常是上限。
-- 数字必须忠实原文，不能改量纲。
-- 金句必须来自原文或基于原文重组，不得虚构。
+```bash
+# 固定尺寸（平台封面、内容卡）
+bun scripts/screenshot.ts <input.html> [output.png] [width] [height]
 
-## 布局判断
+# 自动高度（长文编辑排版）
+bun scripts/screenshot.ts <input.html> [output.png] [width] --full-page
+```
 
-| 密度 | 推荐比例 | 推荐模板 |
+**示例：**
+```bash
+# 公众号首图 900×383
+bun scripts/screenshot.ts /tmp/card.html /tmp/cover.png 900 383
+
+# 小红书图文笔记 1080×1440
+bun scripts/screenshot.ts /tmp/card.html /tmp/xiaohongshu.png 1080 1440
+
+# The Broadsheet 长文排版（自动高度）
+bun scripts/screenshot.ts /tmp/broadsheet.html /tmp/broadsheet.png 800 --full-page
+
+# 默认输出路径（/tmp/claude-card-<basename>.png）
+bun scripts/screenshot.ts /tmp/my-card.html
+```
+
+---
+
+## 支持格式
+
+### 格式族 A — 平台封面
+
+| 格式 | 尺寸 | 适用平台 |
 |---|---|---|
-| 1 个核心观点 | `landscape` / `square` | 大字符主义 |
-| 2-4 个要点 | `square` / `portrait` | 标准单栏 |
-| 5+ 个要点 | `portrait` | 单栏列表 |
-| 5+ 要点且明确要求桌面展示 | `portrait` | 多栏网格 |
+| 公众号首图 | 900 × 383 px | 微信公众号文章封面 |
+| 视频号竖封面 | 1080 × 1440 px | 微信视频号封面 |
+| B站/YouTube 横封面 | 1280 × 720 px | B站、YouTube 缩略图 |
+| 抖音全屏竖版 | 1080 × 1920 px | 抖音、TikTok 封面 |
 
-## 什么时候加图
+### 格式族 B — 图文内容卡
 
-只在图比纯文本多传递信息时加图：
+| 格式 | 尺寸 | 特征 |
+|---|---|---|
+| 小红书图文笔记 | 1080 × 1440 px | 分层标签 + 图文混排 |
+| 步骤教程卡 | 1080 × 1440 px | 编号步骤 + 进度条 SVG |
+| 对比分析卡 | 1080 × 1440 px | 双列对比，Terracotta 高亮胜出方 |
 
-- 因果链清晰时，用 Mermaid 流程图。
-- 有步骤流程时，用 Mermaid 流程图。
-- 概念关系清晰时，用 Mermaid 关系图。
-- 抽象但适合视觉表达时，用内联 SVG。
-- 纯观点、纯列表、纯金句时，不加图。
+### 格式族 C — 社交分享卡
 
-## 输出规范
+| 格式 | 尺寸 | 特征 |
+|---|---|---|
+| 金句分享卡 | 1080 × 1080 px | 大号引言符，极简单栏 |
+| 数据大字卡 | 1080 × 1080 px | 超大数字主导，SVG 进度条 |
+| 方形通用卡 | 1080 × 1080 px | 标准单栏，灵活适配 |
 
-- 默认输出 HTML 到 `/tmp/info-card-[关键词].html`
-- 页面必须内置保存 PNG 按钮
-- 默认以手机阅读为先
-- 默认支持 `auto`、`portrait`、`square`、`landscape` 四种画布比例
-- 高密度内容优先单栏，不为了桌面感牺牲可读性
-- 所有主题必须真正改变构图，不只是改颜色
+### 格式族 D — 长文编辑排版
 
-## 文档结构
+| 格式 | 宽度 | 气质 |
+|---|---|---|
+| The Broadsheet | 800 px | 三栏报纸，版刻装饰，Drop Cap |
+| The Feature | 760 px | 杂志深度，暗头双栏，边侧栏 |
+| The Reader | 720 px | 文学期刊，Marginalia 边注 |
+| The Digest | 760 px | 分析报告，摘要框 + 数据列 |
 
-- `SKILL.md`：生成规则与主题决策
-- `references/design-spec.md`：视觉规范与模板库
-- `assets/`：本地字体资源
+---
 
-## 阅读顺序
+## 设计系统
 
-如果你只想快速上手，按这个顺序看：
+所有卡片使用统一的 Claude 设计 Token：
 
-1. 安装
-2. 快速开始
-3. 主题家族
-4. 使用流程
-5. 内容提炼原则
-6. 输出规范
+| Token | 色值 | 用途 |
+|---|---|---|
+| `--pg` Parchment | `#f5f4ed` | 主背景 |
+| `--iv` Ivory | `#faf9f5` | 卡面/次背景 |
+| `--nk` Near-Black | `#141413` | 正文、标题 |
+| `--tc` Terracotta | `#c96442` | 强调、装饰 |
+| `--ds` Dark-Surface | `#30302e` | 深色区块 |
+| `--og` Olive-Gray | `#5e5d59` | 副文本 |
+| `--sg` Stone-Gray | `#87867f` | 元信息 |
 
-## 设计原则
+**字体**：Georgia（衬线，标题/正文）+ system-ui（UI/标签）  
+**禁止**：冷色调蓝灰、纯白 `#ffffff`、`font-weight: 700`
 
-这个项目吸收了几类成熟设计逻辑：
+详见 [DESIGN.md](DESIGN.md) 和 [references/design-spec.md](references/design-spec.md)。
 
-- 像 Claude 一样重视纸感、阅读节奏和温暖的内容气质。
-- 像 Vercel 一样重视精确、留白和边界。
-- 像 Notion 一样重视内容优先和结构清晰。
-- 像 BMW、Ferrari 一样重视场景感、对比和张力。
-- 像 [taste-skill](https://github.com/Leonxlnx/taste-skill/) 一样严格拒绝 AI 常见的平庸模板。
+---
 
-## 对齐标准
+## SVG 设计系统
 
-这些仓库是本项目的设计参照：
+卡片可包含最多 3 种 SVG 类型：
 
-- [qiaomu-info-card-designer](https://github.com/joeseesun/qiaomu-info-card-designer)：致谢原始灵感来源，项目在其信息卡输出思路基础上重写了主题系统、文档结构与设计规范。
-- [awesome-design-md](https://github.com/VoltAgent/awesome-design-md)：提供品牌级设计语言样本，重点吸收气质、留白、层级与边界感。
-- [taste-skill](https://github.com/Leonxlnx/taste-skill/)：提供设计工程约束，重点吸收反 slop、字体纪律、布局变体和动效边界。
+| 类型 | 功能 |
+|---|---|
+| A 排版装饰器 | 含节点的分割线 |
+| B 大号引言符 | Georgia 大引号，opacity 0.07-0.12 |
+| C 编辑插图 | 纯几何，传达文章隐喻 |
+| D 数据可视化 | 折线/进度条 + stroke-dasharray 动画 |
+| E 图案底纹 | `<pattern>` 网点，opacity 0.05-0.08 |
 
-落点对应关系：
+---
 
-- 纸感与阅读节奏 → Claude / Notion
-- 精确边界与 shadow-as-border → Vercel
-- 场景感与戏剧性 → BMW / Ferrari
-- 反泛化与强约束 → [taste-skill](https://github.com/Leonxlnx/taste-skill/)
+## 项目结构
 
-## 约束
+```
+claude-design-card/
+├── SKILL.md                    # 主技能定义（AI Agent 读取）
+├── DESIGN.md                   # Claude 设计系统规范（权威，禁止修改）
+├── scripts/
+│   └── screenshot.ts           # Playwright 截图脚本（Bun 运行）
+├── references/
+│   └── design-spec.md          # 设计规范详细参考
+└── skills/claude-design-card/
+    ├── SKILL.md                # 内层技能文件
+    └── assets/
+        ├── TsangerJinKai02-W04.ttf
+        └── NotoSerifSC-Regular.ttf
+```
 
-- 不允许虚构内容。
-- 不允许只改颜色不改结构。
-- 不允许主题之间没有明显差异。
-- 不允许让手机阅读变差来换视觉效果。
-- 不允许文档像 fork 的二次转述。
+---
 
-## 进一步说明
+## 作为 AI Skill 使用
 
-如果你要改主题、补模板或校准规范，优先改：
+在 Claude Code 中安装后，通过自然语言描述触发：
 
-1. `references/design-spec.md`
-2. `SKILL.md`
-3. `README.md`
+```
+帮我把这篇文章做成小红书图文笔记卡片
+把这个数据做成方形分享卡
+帮我生成一张公众号首图封面
+把这篇长文做成 The Broadsheet 编辑排版
+```
 
-这三个文件必须互相一致，不能各说各话。
+技能会自动：
+1. 分析内容，选择合适格式
+2. 提炼关键信息（不编造）
+3. 生成符合 Claude 设计语言的 HTML
+4. 调用截图脚本输出 PNG 到 `/tmp/`
+
+---
+
+## License
+
+MIT
