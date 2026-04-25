@@ -53,17 +53,6 @@ bun install
 bunx playwright install chromium
 ```
 
-### 字体安装
-
-项目包含 `NotoSerifSC-Regular.ttf`（SIL OFL 开源授权）。
-
-仓耳今楷（TsangerJinKai02）为商业授权字体，**不随代码分发**，需单独下载后放入 `assets/` 目录：
-
-1. 前往 [仓耳字库官网](http://tsanger.cn/) 免费下载个人非商业版
-2. 将 `TsangerJinKai02-W04.ttf` 放入 `assets/TsangerJinKai02-W04.ttf`
-
-> 未安装时，卡片标题自动降级为 `NotoSerifSC → Georgia` 衬线字体。
-
 ---
 
 ## 快速上手
