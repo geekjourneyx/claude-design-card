@@ -40,6 +40,14 @@
 
 ## 安装
 
+**作为 AI Skill（推荐）：**
+
+```bash
+npx skills add https://github.com/geekjourneyx/claude-design-card
+```
+
+**本地开发：**
+
 ```bash
 bun install
 bunx playwright install chromium
@@ -167,4 +175,7 @@ bun scripts/screenshot.ts /tmp/my-card.html
 
 | | |
 |:---|:---|
+| 个人主页 | [jieni.ai](https://jieni.ai) |
 | GitHub | [geekjourneyx](https://github.com/geekjourneyx) |
+| Twitter | [@seekjourney](https://x.com/seekjourney) |
+| 公众号 | 微信搜「极客杰尼」 |
