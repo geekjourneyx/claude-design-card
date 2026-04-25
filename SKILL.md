@@ -384,7 +384,7 @@ Feature 风格，需要头图区域？
 
 生成**完整自包含** HTML 文件：
 - 所有样式内联，不依赖外部 CSS / JS
-- 使用本地字体（\`TsangerJinKai02-W04.ttf\`、\`NotoSerifSC-Regular.ttf\`），路径：\`skills/claude-design-card/assets/\`，通过 \`@font-face\` 加载
+- 使用本地字体（\`TsangerJinKai02-W04.ttf\`、\`NotoSerifSC-Regular.ttf\`），路径：\`assets/\`，通过 \`@font-face\` 加载
 - 卡片宽度与格式尺寸匹配
 - 底部包含一键保存 PNG 按钮（浏览器直接打开可用）
 

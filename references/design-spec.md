@@ -35,12 +35,12 @@ DESIGN.md 定义了 Claude/Anthropic 的完整设计系统；本文件定义其�
 ```css
 @font-face {
   font-family: 'TsangerJinKai';
-  src: url('file:///[PROJECT_ROOT]/skills/claude-design-card/assets/TsangerJinKai02-W04.ttf') format('truetype');
+  src: url('file:///[PROJECT_ROOT]/assets/TsangerJinKai02-W04.ttf') format('truetype');
   font-weight: 400;
 }
 @font-face {
   font-family: 'NotoSerifSC';
-  src: url('file:///[PROJECT_ROOT]/skills/claude-design-card/assets/NotoSerifSC-Regular.ttf') format('truetype');
+  src: url('file:///[PROJECT_ROOT]/assets/NotoSerifSC-Regular.ttf') format('truetype');
   font-weight: 400;
 }
 ```
@@ -245,7 +245,7 @@ bun scripts/screenshot.ts /tmp/claude-card-broadsheet.html /tmp/broadsheet.png 8
 1. 内容必须忠实原文，不得编造。
 2. 任何视觉装饰都不能损害可读性。
 3. 卡片必须完全自包含（无外部 CDN 依赖，可离线截图）。
-4. 字体路径必须使用绝对 file:// URL（如 file:///绝对路径/skills/claude-design-card/assets/），确保离线截图时字体可用。
+4. 字体路径必须使用绝对 file:// URL（如 file:///绝对路径/assets/），确保离线截图时字体可用。
 5. 截图前 SVG 动画必须完成（`waitForTimeout(3000)`）。
 6. 所有颜色必须在 Claude token 范围内。
 7. 标题 `font-weight: 500`，绝不使用 700。
