@@ -19,4 +19,4 @@ node_modules/
 .DS_Store
 
 # Commercial fonts (download separately)
-assets/*.ttf
+assets/TsangerJinKai02*.ttf
