@@ -1,3 +1,6 @@
+# AI session planning artifacts
+docs/
+
 # AI tool managed skill copies (tool-generated, not source of truth)
 .agents/
 .augment/
