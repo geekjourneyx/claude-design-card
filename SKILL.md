@@ -399,10 +399,27 @@ Feature 风格，需要头图区域？
 
 生成**完整自包含** HTML 文件：
 - 所有样式内联，不依赖外部 CSS / JS
-- 使用本地字体（\`TsangerJinKai02-W04.ttf\`、\`NotoSerifSC-Regular.ttf\`），路径：\`assets/\`，通过 \`@font-face\` 加载
+- 使用本地字体（`TsangerJinKai02-W04.ttf`、`NotoSerifSC-Regular.ttf`），通过 `@font-face` 加载
 - 卡片宽度与格式尺寸匹配
-- 底部包含一键保存 PNG 按钮（浏览器直接打开可用）
+- 底部包含一键保存 PNG 按鈕（浏览器直接打开可用）
 
+**字体路径规则（重要）**：`@font-face` 中的 `src: url()` 必须使用 **`file://` 绝对路径**。
+相对路径在 Playwright 截图时无效（Chromium 沙笼阻止加载）。
+
+```css
+/* ✅ 正确：截图和浏览器均可用 */
+@font-face {
+  font-family: 'TsangerJinKai02';
+  src: url('file:///绝对路径/assets/TsangerJinKai02-W04.ttf');
+}
+/* ❌ 错误：浏览器可用，截图时字体失效 */
+@font-face {
+  font-family: 'TsangerJinKai02';
+  src: url('assets/TsangerJinKai02-W04.ttf');
+}
+```
+
+> 完整设计规范参见 [`references/design-spec.md`](references/design-spec.md)（CSS 变量、格式尺寸、SVG 快查表）。
 ### Step 5：保存 HTML 并通知用户
 
 \`\`\`
