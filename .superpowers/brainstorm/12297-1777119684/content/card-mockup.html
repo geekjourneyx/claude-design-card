@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>claude-design-card — 成品设计预览</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
+    background: #e8e6dc;
+    min-height: 100vh;
+    padding: 48px 32px;
+    color: #141413;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .page-header h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: #141413;
+    letter-spacing: -0.3px;
+  }
+  .page-header p {
+    font-size: 15px;
+    color: #5e5d59;
+    margin-top: 8px;
+  }
+  .accent-line {
+    width: 40px;
+    height: 2px;
+    background: #c96442;
+    margin: 16px auto 0;
+    border-radius: 1px;
+  }
+
+  /* Layout sections */
+  .layout-section {
+    margin-bottom: 64px;
+  }
+  .layout-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #87867f;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .layout-center {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ===========================
+     PORTRAIT CARD (600px wide)
+     =========================== */
+  .card-portrait {
+    width: 600px;
+    background: #faf9f5;
+    border-radius: 16px;
+    border: 1px solid #f0eee6;
+    box-shadow: rgba(0,0,0,0.05) 0px 4px 24px;
+    overflow: hidden;
+  }
+
+  .card-portrait .card-header {
+    background: #141413;
+    padding: 36px 40px 32px;
+  }
+  .card-portrait .card-header .overline {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #87867f;
+    margin-bottom: 16px;
+  }
+  .card-portrait .card-header h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 36px;
+    font-weight: 500;
+    line-height: 1.20;
+    color: #faf9f5;
+    margin-bottom: 14px;
+  }
+  .card-portrait .card-header .subtitle {
+    font-size: 15px;
+    color: #87867f;
+    line-height: 1.50;
+  }
+
+  .card-portrait .card-body {
+    padding: 32px 40px 36px;
+  }
+  .card-portrait .key-insight {
+    border-left: 2px solid #c96442;
+    padding: 12px 0 12px 20px;
+    margin-bottom: 28px;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    font-style: italic;
+    line-height: 1.60;
+    color: #4d4c48;
+  }
+  .card-portrait .points-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #87867f;
+    margin-bottom: 16px;
+  }
+  .card-portrait .point {
+    display: flex;
+    gap: 16px;
+    padding: 14px 0;
+    border-top: 1px solid #f0eee6;
+    align-items: flex-start;
+  }
+  .card-portrait .point-num {
+    font-size: 12px;
+    font-weight: 500;
+    color: #c96442;
+    font-variant-numeric: tabular-nums;
+    min-width: 20px;
+    padding-top: 2px;
+    line-height: 1;
+  }
+  .card-portrait .point-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #141413;
+    line-height: 1.40;
+    margin-bottom: 4px;
+  }
+  .card-portrait .point-desc {
+    font-size: 14px;
+    color: #5e5d59;
+    line-height: 1.55;
+  }
+
+  .card-portrait .card-footer {
+    padding: 16px 40px;
+    border-top: 1px solid #e8e6dc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-portrait .card-footer .source {
+    font-size: 13px;
+    color: #87867f;
+  }
+  .card-portrait .card-footer .tag {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    background: #f0eee6;
+    color: #5e5d59;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  /* ===========================
+     SQUARE CARD (600×600)
+     =========================== */
+  .card-square {
+    width: 600px;
+    height: 600px;
+    background: #f5f4ed;
+    border-radius: 16px;
+    border: 1px solid #e8e6dc;
+    box-shadow: rgba(0,0,0,0.05) 0px 4px 24px;
+    padding: 52px 52px 40px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-square::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: #c96442;
+  }
+
+  .card-square .sq-overline {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #87867f;
+    margin-bottom: 28px;
+  }
+  .card-square .sq-headline {
+    font-family: Georgia, serif;
+    font-size: 40px;
+    font-weight: 500;
+    line-height: 1.15;
+    color: #141413;
+    flex: 1;
+    letter-spacing: -0.5px;
+  }
+  .card-square .sq-headline em {
+    font-style: normal;
+    color: #c96442;
+  }
+  .card-square .sq-divider {
+    width: 32px;
+    height: 1px;
+    background: #e8e6dc;
+    margin: 28px 0;
+  }
+  .card-square .sq-data {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 28px;
+  }
+  .card-square .sq-stat .val {
+    font-family: Georgia, serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: #141413;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .card-square .sq-stat .lbl {
+    font-size: 12px;
+    color: #87867f;
+  }
+  .card-square .sq-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-square .sq-source {
+    font-size: 13px;
+    color: #87867f;
+  }
+  .card-square .sq-brand {
+    width: 28px;
+    height: 28px;
+    background: #141413;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-square .sq-brand span {
+    font-family: Georgia, serif;
+    font-size: 12px;
+    color: #c96442;
+    font-weight: 500;
+  }
+
+  /* ===========================
+     LANDSCAPE CARD (900×560)
+     =========================== */
+  .card-landscape {
+    width: 900px;
+    background: #faf9f5;
+    border-radius: 16px;
+    border: 1px solid #f0eee6;
+    box-shadow: rgba(0,0,0,0.05) 0px 4px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    min-height: 480px;
+  }
+
+  .card-landscape .ls-left {
+    background: #141413;
+    padding: 56px 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .card-landscape .ls-left .overline {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #5e5d59;
+  }
+  .card-landscape .ls-left h1 {
+    font-family: Georgia, serif;
+    font-size: 44px;
+    font-weight: 500;
+    line-height: 1.15;
+    color: #faf9f5;
+    flex: 1;
+    margin: 32px 0;
+    letter-spacing: -0.5px;
+  }
+  .card-landscape .ls-left .source {
+    font-size: 13px;
+    color: #5e5d59;
+  }
+
+  .card-landscape .ls-right {
+    padding: 52px 52px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .card-landscape .ls-right .points-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #87867f;
+    margin-bottom: 20px;
+  }
+  .card-landscape .ls-right .point {
+    padding: 14px 0;
+    border-bottom: 1px solid #f0eee6;
+  }
+  .card-landscape .ls-right .point:last-of-type {
+    border-bottom: none;
+  }
+  .card-landscape .ls-right .point-text {
+    font-size: 15px;
+    color: #141413;
+    line-height: 1.50;
+  }
+  .card-landscape .ls-right .point-text strong {
+    color: #c96442;
+    font-weight: 500;
+  }
+  .card-landscape .ls-right .ls-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    background: #f0eee6;
+    color: #5e5d59;
+    padding: 5px 12px;
+    border-radius: 4px;
+    margin-top: 24px;
+  }
+
+  /* selector helper text */
+  .select-hint {
+    text-align: center;
+    font-size: 13px;
+    color: #87867f;
+    margin-bottom: 20px;
+  }
+  .variant-row {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 64px;
+  }
+  .variant-card {
+    cursor: pointer;
+    border-radius: 16px;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    display: inline-block;
+  }
+  .variant-card:hover {
+    border-color: #c96442;
+  }
+  .variant-card.selected {
+    border-color: #c96442;
+  }
+
+  .caption {
+    font-size: 12px;
+    color: #87867f;
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  /* Playwright note */
+  .section-note {
+    background: #faf9f5;
+    border: 1px solid #f0eee6;
+    border-radius: 12px;
+    padding: 24px 32px;
+    max-width: 640px;
+    margin: 0 auto 48px;
+    text-align: center;
+  }
+  .section-note .note-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #c96442;
+    margin-bottom: 8px;
+  }
+  .section-note p {
+    font-size: 14px;
+    color: #5e5d59;
+    line-height: 1.60;
+  }
+  .section-note code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    background: #f0eee6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #141413;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>claude-design-card — 成品设计</h1>
+  <p>三种布局变体，统一 Claude / Anthropic 设计语言</p>
+  <div class="accent-line"></div>
+</div>
+
+<!-- Portrait -->
+<div class="layout-section">
+  <div class="layout-label">Portrait 竖版 · 600px · 高密度内容 / 阅读型</div>
+  <div class="layout-center">
+    <div class="variant-card" data-choice="portrait" onclick="toggleSelect(this)">
+      <div class="card-portrait">
+        <div class="card-header">
+          <div class="overline">长文摘要 · 2025年AI年度报告</div>
+          <h1>AI 模型能力在 2025 年实现质的跃升</h1>
+          <div class="subtitle">多模态、长上下文与推理能力同步突破，重塑了企业应用边界</div>
+        </div>
+        <div class="card-body">
+          <div class="key-insight">
+            "2025 年最大的转变不是模型更聪明，而是模型开始能在复杂多步骤任务中持续可靠。"
+          </div>
+          <div class="points-label">核心要点</div>
+          <div class="point">
+            <div class="point-num">01</div>
+            <div>
+              <div class="point-title">上下文窗口突破 100 万 token</div>
+              <div class="point-desc">主流前沿模型均已支持超长上下文，整本书、整份代码库可以一次性输入。</div>
+            </div>
+          </div>
+          <div class="point">
+            <div class="point-num">02</div>
+            <div>
+              <div class="point-title">多模态成为标配，不再是亮点</div>
+              <div class="point-desc">图像、音频、视频理解已深度融入主流模型，单模态产品竞争力迅速下滑。</div>
+            </div>
+          </div>
+          <div class="point">
+            <div class="point-num">03</div>
+            <div>
+              <div class="point-title">推理型模型在专业任务上超越人类专家</div>
+              <div class="point-desc">数学竞赛、代码审计、医学诊断等高难度任务中，AI 正式突破人类顶尖水平。</div>
+            </div>
+          </div>
+          <div class="point">
+            <div class="point-num">04</div>
+            <div>
+              <div class="point-title">企业采用率从 30% 增长至 67%</div>
+              <div class="point-desc">超过半数大型企业已将 AI 深度嵌入核心业务流程，2024 年底该数字为 30%。</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="source">via Anthropic Research · 2025</div>
+          <div class="tag">AI 报告</div>
+        </div>
+      </div>
+      <div class="caption">点击选择此布局</div>
+    </div>
+  </div>
+</div>
+
+<!-- Square -->
+<div class="layout-section">
+  <div class="layout-label">Square 方形 · 600×600 · 传播型 / 社交分享</div>
+  <div class="layout-center">
+    <div class="variant-card" data-choice="square" onclick="toggleSelect(this)">
+      <div class="card-square">
+        <div class="sq-overline">强观点 · 技术评论</div>
+        <div class="sq-headline">
+          代码不会因为<br>有了 AI<br>变得更<em>简单</em>，<br>只会变得更多
+        </div>
+        <div class="sq-divider"></div>
+        <div class="sq-data">
+          <div class="sq-stat">
+            <div class="val">3.4×</div>
+            <div class="lbl">代码产出增幅</div>
+          </div>
+          <div class="sq-stat">
+            <div class="val">↑67%</div>
+            <div class="lbl">技术债增长速度</div>
+          </div>
+        </div>
+        <div class="sq-footer">
+          <div class="sq-source">via @GeekJourney · 2025</div>
+          <div class="sq-brand"><span>C</span></div>
+        </div>
+      </div>
+      <div class="caption">点击选择此布局</div>
+    </div>
+  </div>
+</div>
+
+<!-- Landscape -->
+<div class="layout-section">
+  <div class="layout-label">Landscape 横版 · 900px · 低密度 / 数据简报</div>
+  <div class="layout-center">
+    <div class="variant-card" data-choice="landscape" onclick="toggleSelect(this)">
+      <div class="card-landscape">
+        <div class="ls-left">
+          <div class="overline">数据简报 · Q2 2025</div>
+          <h1>开源模型正在追上闭源模型的能力边界</h1>
+          <div class="source">via Hugging Face · LLM Leaderboard 2025</div>
+        </div>
+        <div class="ls-right">
+          <div>
+            <div class="points-label">关键数据</div>
+            <div class="point">
+              <div class="point-text"><strong>Llama 4 Maverick</strong> 在 7 项主流基准上已超越 GPT-4o</div>
+            </div>
+            <div class="point">
+              <div class="point-text"><strong>开源模型平均成本</strong>较 12 个月前下降 <strong>89%</strong></div>
+            </div>
+            <div class="point">
+              <div class="point-text">企业自部署比例从 <strong>18%</strong> 上升至 <strong>41%</strong>，安全与成本驱动</div>
+            </div>
+          </div>
+          <div>
+            <div class="ls-tag">AI 竞争格局</div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">点击选择此布局</div>
+    </div>
+  </div>
+</div>
+
+<!-- Technical note -->
+<div class="section-note">
+  <div class="note-label">生成方式</div>
+  <p>
+    生成 HTML → 自动运行 <code>bun scripts/screenshot.ts /tmp/card.html</code><br>
+    → Playwright 截图 → 保存至 <code>/tmp/claude-card-[关键词].png</code>
+  </p>
+</div>
+
+<script>
+function toggleSelect(el) {
+  const allCards = document.querySelectorAll('.variant-card');
+  allCards.forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  if (window.selectOption) window.selectOption(el.dataset.choice, el.querySelector('h1, .sq-headline, .ls-left h1')?.textContent?.trim() || el.dataset.choice);
+}
+</script>
+</body>
+</html>

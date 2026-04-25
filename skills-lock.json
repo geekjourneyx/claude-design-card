@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "any2card": {
+      "source": "geekjourneyx/any2card",
+      "sourceType": "github",
+      "computedHash": "9dff7c3192e59ba6dfb8102b07740239e674a748143b0d9f3bc1bc65fe74cbb9"
+    }
+  }
+}

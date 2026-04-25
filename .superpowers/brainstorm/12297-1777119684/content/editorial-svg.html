@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>claude-design-card — 长文编辑排版 · SVG 增强版</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, system-ui, sans-serif;
+  background: #d5d2c8;
+  padding: 40px 24px 80px;
+  color: #141413;
+}
+
+.page-title { text-align: center; margin-bottom: 12px; }
+.page-title h1 { font-family: Georgia, serif; font-size: 26px; font-weight: 500; color: #141413; }
+.page-title p { font-size: 14px; color: #5e5d59; margin-top: 6px; line-height: 1.55; max-width: 640px; margin-left: auto; margin-right: auto; }
+.accent-line { width: 40px; height: 2px; background: #c96442; margin: 14px auto 0; }
+
+.thinking-box {
+  background: #faf9f5; border: 1px solid #e8e6dc; border-left: 3px solid #c96442;
+  border-radius: 8px; padding: 18px 24px; max-width: 800px; margin: 32px auto;
+  font-size: 13px; color: #5e5d59; line-height: 1.65;
+}
+.thinking-box strong { color: #141413; }
+.thinking-box .tb-label { font-size: 9px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: #c96442; margin-bottom: 10px; }
+
+.sec-label { font-size: 10px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: #87867f; text-align: center; margin: 52px 0 6px; }
+.sec-sub { font-size: 13px; color: #5e5d59; text-align: center; margin-bottom: 28px; line-height: 1.5; }
+
+.layout-wrapper { cursor: pointer; max-width: 840px; margin: 0 auto 48px; }
+.layout-wrapper .lw-shell {
+  border-radius: 12px; border: 2px solid transparent; overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: rgba(0,0,0,0.08) 0 4px 24px;
+}
+.layout-wrapper:hover .lw-shell { border-color: #c96442; box-shadow: 0 0 0 4px rgba(201,100,66,0.12), rgba(0,0,0,0.08) 0 4px 24px; }
+.layout-wrapper.selected .lw-shell { border-color: #c96442; box-shadow: 0 0 0 4px rgba(201,100,66,0.15); }
+.lw-meta { display: flex; justify-content: space-between; align-items: center; padding: 12px 4px 0; }
+.lw-meta .lm-name { font-size: 14px; font-weight: 500; color: #141413; }
+.lw-meta .lm-desc { font-size: 12px; color: #87867f; }
+
+:root {
+  --pg: #f5f4ed; --iv: #faf9f5; --nk: #141413; --ds: #30302e;
+  --tc: #c96442; --og: #5e5d59; --sg: #87867f;
+  --bc: #f0eee6; --bw: #e8e6dc; --ws: #b0aea5;
+}
+
+/* ============================================================
+   SVG SYSTEM ADDITIONS
+   ============================================================ */
+.svg-divider { display: flex; justify-content: center; align-items: center; margin: 12px 0; }
+.svg-section-break { display: flex; justify-content: center; align-items: center; padding: 10px 0; }
+
+/* Pull quote SVG positioning */
+.pq-wrap { position: relative; overflow: visible; display: flex; align-items: center; gap: 20px; }
+.pq-bg-quote { position: absolute; top: -14px; left: 30px; pointer-events: none; z-index: 0; }
+.pq-wrap > * { position: relative; z-index: 1; }
+
+/* Feature illustration */
+.feat-illustration {
+  background: var(--pg); border: 1px solid var(--bc);
+  display: flex; justify-content: center; align-items: center;
+  padding: 20px 16px 16px; margin-bottom: 20px; position: relative; overflow: hidden;
+}
+.feat-illustration-label {
+  position: absolute; bottom: 8px; right: 12px;
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 9px; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--sg); font-style: italic;
+}
+
+/* Manicule in marginalia */
+.mn-ref-svg { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+.mn-ref-svg span {
+  font-family: -apple-system, system-ui, sans-serif; font-size: 9px; font-weight: 500;
+  color: var(--tc); letter-spacing: 0.4px; text-transform: uppercase;
+}
+
+/* Sparkline animations */
+.spark-line {
+  stroke-dasharray: 145;
+  stroke-dashoffset: 145;
+  animation: draw-spark 2.4s ease-out 1s forwards;
+}
+@keyframes draw-spark { to { stroke-dashoffset: 0; } }
+
+/* Progress bar animations */
+.prog-67 { stroke-dasharray: 0 94; animation: fill-67 1.8s ease-out 1.2s forwards; }
+@keyframes fill-67 { to { stroke-dasharray: 63 94; } }
+.prog-5x { stroke-dasharray: 0 94; animation: fill-5x 1.8s ease-out 1.0s forwards; }
+@keyframes fill-5x { to { stroke-dasharray: 94 94; } }
+.prog-neg { stroke-dasharray: 0 94; animation: fill-neg 1.8s ease-out 1.1s forwards; }
+@keyframes fill-neg { to { stroke-dasharray: 11.3 94; } }
+
+/* ============================================================
+   LAYOUT 1: THE BROADSHEET
+   ============================================================ */
+.broadsheet { background: var(--pg); width: 800px; font-family: Georgia, 'Times New Roman', serif; }
+
+.bs-masthead { border-bottom: 3px solid var(--nk); padding: 0 0 10px; margin: 0 32px; }
+.bs-masthead-top {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: 20px 0 8px; border-bottom: 1px solid var(--nk); margin-bottom: 8px;
+}
+.bs-masthead-title { font-size: 42px; font-weight: 500; letter-spacing: -1px; color: var(--nk); line-height: 1; }
+.bs-masthead-title em { font-style: normal; color: var(--tc); }
+.bs-masthead-meta { text-align: right; font-size: 10px; color: var(--og); line-height: 1.6; font-style: italic; }
+.bs-masthead-rule {
+  font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--sg);
+  font-family: -apple-system, system-ui, sans-serif;
+  display: flex; justify-content: space-between;
+}
+
+.bs-lead { padding: 20px 32px 0; border-bottom: 2px solid var(--nk); }
+.bs-kicker { font-family: -apple-system, system-ui, sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; color: var(--tc); margin-bottom: 8px; }
+.bs-headline { font-size: 46px; font-weight: 500; line-height: 1.05; color: var(--nk); letter-spacing: -1.5px; margin-bottom: 10px; }
+.bs-standfirst { font-size: 15px; font-style: italic; color: var(--og); line-height: 1.55; border-top: 1px solid var(--bw); padding-top: 10px; margin-bottom: 16px; }
+
+.bs-columns { padding: 18px 32px; column-count: 3; column-gap: 24px; column-rule: 1px solid var(--bw); }
+.bs-byline { font-family: -apple-system, system-ui, sans-serif; font-size: 10px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--sg); margin-bottom: 10px; font-weight: 500; }
+.bs-dropcap::first-letter { font-size: 3.8em; font-weight: 500; float: left; line-height: 0.82; margin-right: 0.06em; margin-top: 0.04em; color: var(--tc); }
+.bs-body { font-size: 13.5px; line-height: 1.58; color: var(--nk); margin-bottom: 10px; hyphens: auto; }
+
+.bs-pullquote {
+  column-span: all; border-top: 2px solid var(--nk); border-bottom: 1px solid var(--nk);
+  margin: 14px 0; padding: 14px 40px;
+  position: relative; overflow: visible;
+}
+.bs-pullquote .pq-inner { display: flex; align-items: center; gap: 20px; position: relative; z-index: 1; }
+.bs-pullquote .pq-rule { width: 2px; height: 40px; background: var(--tc); flex-shrink: 0; }
+.bs-pullquote .pq-text { font-size: 19px; font-style: italic; line-height: 1.35; color: var(--nk); flex: 1; }
+.bs-pullquote .pq-attr { font-family: -apple-system, system-ui, sans-serif; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--sg); flex-shrink: 0; text-align: right; line-height: 1.5; }
+
+.bs-footer { border-top: 1px solid var(--bw); padding: 10px 32px; display: flex; justify-content: space-between; font-family: -apple-system, system-ui, sans-serif; font-size: 10px; color: var(--sg); letter-spacing: 0.3px; }
+
+/* ============================================================
+   LAYOUT 2: THE FEATURE
+   ============================================================ */
+.feature { background: var(--iv); width: 760px; font-family: Georgia, serif; border: 1px solid var(--bc); }
+.feat-header { background: var(--nk); padding: 44px 56px 40px; }
+.feat-kicker { font-family: -apple-system, system-ui, sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tc); margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+.feat-kicker::after { content: ''; flex: 1; height: 1px; background: #3a3a38; }
+.feat-headline { font-size: 52px; font-weight: 500; line-height: 1.08; color: var(--iv); letter-spacing: -1.5px; margin-bottom: 20px; }
+.feat-standfirst { font-size: 17px; font-style: italic; color: var(--ws); line-height: 1.60; border-top: 1px solid #30302e; padding-top: 18px; }
+.feat-meta-bar { background: var(--ds); padding: 10px 56px; display: flex; gap: 24px; font-family: -apple-system, system-ui, sans-serif; font-size: 10px; letter-spacing: 0.4px; color: var(--sg); }
+.feat-meta-bar span { color: var(--ws); }
+
+.feat-body { display: grid; grid-template-columns: 1fr 220px; gap: 0; }
+.feat-main { padding: 32px 40px 32px 56px; border-right: 1px solid var(--bc); }
+.feat-sidebar { padding: 32px 32px 32px 28px; position: relative; }
+
+.feat-dropcap::first-letter { font-size: 3.6em; font-weight: 500; float: left; line-height: 0.82; margin-right: 0.06em; margin-top: 0.06em; color: var(--tc); }
+.feat-p { font-size: 15px; line-height: 1.62; color: var(--nk); margin-bottom: 14px; hyphens: auto; }
+
+.feat-pullquote { border-top: 2px solid var(--tc); border-bottom: 1px solid var(--bw); padding: 16px 0; margin: 20px 0; position: relative; overflow: visible; }
+.feat-pullquote .fpq-text { font-size: 20px; font-style: italic; line-height: 1.38; color: var(--nk); position: relative; z-index: 1; }
+.feat-pullquote .fpq-attr { font-family: -apple-system, system-ui, sans-serif; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; color: var(--sg); margin-top: 8px; position: relative; z-index: 1; }
+
+.feat-sb-label { font-family: -apple-system, system-ui, sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--tc); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--bc); }
+.feat-sb-item { padding: 10px 0; border-bottom: 1px solid var(--bc); }
+.feat-sb-item .si-title { font-size: 13px; font-weight: 500; color: var(--nk); line-height: 1.35; margin-bottom: 4px; }
+.feat-sb-item .si-desc { font-family: -apple-system, system-ui, sans-serif; font-size: 11px; color: var(--sg); line-height: 1.45; }
+.feat-sb-stat { padding: 14px 0; border-bottom: 1px solid var(--bc); }
+.feat-sb-stat .ss-num { font-size: 32px; font-weight: 500; color: var(--tc); line-height: 1; margin-bottom: 4px; }
+.feat-sb-stat .ss-label { font-family: -apple-system, system-ui, sans-serif; font-size: 11px; color: var(--og); line-height: 1.4; }
+
+/* ============================================================
+   LAYOUT 3: THE READER
+   ============================================================ */
+.reader { background: var(--pg); width: 720px; font-family: Georgia, serif; }
+.reader-header { padding: 36px 48px 28px; border-bottom: 1px solid var(--bw); }
+.reader-running-head { display: flex; justify-content: space-between; font-family: -apple-system, system-ui, sans-serif; font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--sg); margin-bottom: 28px; }
+.reader-section-tag { font-family: -apple-system, system-ui, sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--tc); margin-bottom: 14px; }
+.reader-headline { font-size: 40px; font-weight: 500; line-height: 1.15; color: var(--nk); letter-spacing: -0.8px; margin-bottom: 14px; }
+.reader-byline { font-family: -apple-system, system-ui, sans-serif; font-size: 11px; color: var(--og); letter-spacing: 0.3px; margin-bottom: 16px; }
+.reader-standfirst { font-size: 17px; font-style: italic; color: var(--og); line-height: 1.62; border-top: 1px solid var(--bw); padding-top: 16px; }
+
+.reader-body { display: grid; grid-template-columns: 1fr 160px; gap: 0; padding: 28px 0; }
+.reader-text { padding: 0 32px 0 48px; }
+.reader-margin { padding: 0 24px 0 0; border-left: 1px solid var(--bc); }
+
+.reader-p { font-size: 16px; line-height: 1.68; color: var(--nk); margin-bottom: 16px; hyphens: auto; }
+.reader-dropcap::first-letter { font-size: 3.5em; font-weight: 500; float: left; line-height: 0.82; margin-right: 0.06em; margin-top: 0.06em; color: var(--tc); }
+
+.reader-pullquote { text-align: center; padding: 20px 48px; margin: 4px 0; position: relative; }
+.reader-pullquote::before, .reader-pullquote::after { content: ''; display: block; height: 1px; background: var(--nk); position: absolute; left: 48px; right: 0; }
+.reader-pullquote::before { top: 0; }
+.reader-pullquote::after { bottom: 0; }
+.reader-pullquote .rq-text { font-size: 21px; font-style: italic; line-height: 1.40; color: var(--nk); position: relative; z-index: 1; }
+.reader-pullquote .rq-ornament { font-size: 11px; color: var(--tc); letter-spacing: 4px; margin-top: 10px; }
+
+.marginalia { margin-bottom: 20px; padding-left: 16px; }
+.marginalia .mn-text { font-family: -apple-system, system-ui, sans-serif; font-size: 11px; color: var(--og); line-height: 1.55; }
+
+.reader-footer { border-top: 1px solid var(--bw); padding: 12px 48px; display: flex; justify-content: space-between; font-family: -apple-system, system-ui, sans-serif; font-size: 10px; color: var(--sg); }
+
+/* ============================================================
+   LAYOUT 4: THE DIGEST
+   ============================================================ */
+.digest { background: var(--iv); width: 760px; font-family: -apple-system, system-ui, sans-serif; }
+.digest-header { background: var(--nk); padding: 40px 52px 36px; }
+.dg-vol { font-size: 9px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; color: var(--sg); margin-bottom: 20px; display: flex; gap: 16px; }
+.dg-vol span { color: var(--tc); }
+.dg-title { font-family: Georgia, serif; font-size: 44px; font-weight: 500; line-height: 1.10; color: var(--iv); letter-spacing: -1px; margin-bottom: 14px; }
+.dg-subtitle { font-size: 15px; color: var(--ws); line-height: 1.55; }
+
+.digest-abstract { background: var(--pg); border-left: 3px solid var(--tc); margin: 0 52px 0; padding: 20px 24px; border-bottom: 1px solid var(--bw); }
+.dg-abstract-label { font-size: 9px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--tc); margin-bottom: 8px; }
+.dg-abstract-text { font-family: Georgia, serif; font-size: 14px; font-style: italic; color: var(--og); line-height: 1.62; }
+
+.dg-section { padding: 24px 52px 0; }
+.dg-running-head { display: flex; align-items: center; gap: 0; margin-bottom: 16px; }
+.dg-running-num { min-width: 32px; display: flex; align-items: center; }
+.dg-running-title { font-size: 9px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--sg); flex: 1; padding-left: 8px; border-left: 1px solid var(--bw); line-height: 1; }
+.dg-running-page { font-size: 9px; color: var(--sg); }
+
+.dg-section-title { font-family: Georgia, serif; font-size: 22px; font-weight: 500; color: var(--nk); line-height: 1.25; margin-bottom: 12px; }
+
+.dg-body-grid { display: grid; grid-template-columns: 1fr 180px; gap: 0; padding: 0 52px 24px; border-bottom: 1px solid var(--bc); }
+.dg-body-text { padding-right: 28px; border-right: 1px solid var(--bc); }
+.dg-body-data { padding-left: 24px; }
+.dg-p { font-family: Georgia, serif; font-size: 14.5px; line-height: 1.62; color: var(--nk); margin-bottom: 12px; }
+.dg-p strong { font-weight: 500; color: var(--nk); }
+
+.dg-callout { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--bc); }
+.dg-callout:last-child { border-bottom: none; }
+.dg-callout .dc-num { font-family: Georgia, serif; font-size: 28px; font-weight: 500; color: var(--nk); line-height: 1; margin-bottom: 4px; }
+.dg-callout .dc-num em { font-size: 16px; font-style: normal; color: var(--tc); }
+.dg-callout .dc-label { font-size: 11px; color: var(--og); line-height: 1.45; }
+
+.dg-finding { margin: 0 52px 0; background: var(--pg); border: 1px solid var(--bw); padding: 16px 20px; }
+.dg-finding-label { font-size: 9px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--tc); margin-bottom: 8px; }
+.dg-finding-items { list-style: none; padding: 0; }
+.dg-finding-items li { font-family: Georgia, serif; font-size: 13.5px; color: var(--nk); line-height: 1.55; padding: 5px 0; border-bottom: 1px solid var(--bc); display: flex; gap: 8px; align-items: flex-start; }
+.dg-finding-items li:last-child { border-bottom: none; }
+
+.digest-footer { padding: 12px 52px; border-top: 1px solid var(--bc); display: flex; justify-content: space-between; font-size: 10px; color: var(--sg); letter-spacing: 0.3px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HIDDEN SVG DEFS
+     ============================================================ -->
+<svg width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true">
+  <defs>
+    <!-- Halftone dot pattern for sidebar texture -->
+    <pattern id="dot-halftone" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="1.3" fill="#c96442" opacity="0.07"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div class="page-title">
+  <h1>长文编辑排版 — SVG 增强版</h1>
+  <p>每个 SVG 元素都有自己的工作：装饰线有「印刷重量感」，引言符有「出版社级别的大」，插图有「Bauhaus 编辑意图」，数据有「视觉语言」</p>
+  <div class="accent-line"></div>
+</div>
+
+<div class="thinking-box">
+  <div class="tb-label">SVG 设计原则</div>
+  <strong>SVG 不是装饰，是印刷工艺的数字实现。</strong><br><br>
+  每种 SVG 元素对应一种具体的印刷/排版传统：<br>
+  ① <strong>三菱分割线</strong> — 活字印刷时代的版刻装饰规则，不是 CSS border 能表达的精度<br>
+  ② <strong>大引言符</strong> — 真正的 6cm 高开合引号，字体渲染失真时 SVG 路径最稳定<br>
+  ③ <strong>Bauhaus 插图</strong> — 几何抽象代替摄影，20世纪编辑传统<br>
+  ④ <strong>折线图动画</strong> — stroke-dasharray 让数据「被读出来」，而不只是静止存在
+</div>
+
+
+<!-- ============================
+     LAYOUT 1: THE BROADSHEET
+     ============================ -->
+<div class="sec-label">格式一 · The Broadsheet · SVG 增强</div>
+<div class="sec-sub">三菱装饰线替换 Unicode 符号 · 大号 SVG 引言符 · 印刷版刻气质</div>
+
+<div class="layout-wrapper" data-choice="broadsheet" onclick="toggleSelect(this)">
+  <div class="lw-shell">
+    <div class="broadsheet">
+
+      <div class="bs-masthead">
+        <div class="bs-masthead-top">
+          <div class="bs-masthead-title">极客旅程 <em>评论</em></div>
+          <div class="bs-masthead-meta">
+            "以技术之名，追问真实的意义"<br>
+            MCMXXV · Vol. XII · No. 17
+          </div>
+        </div>
+        <div class="bs-masthead-rule">
+          <span>2025年4月25日 · 星期五</span>
+          <span>AI · 设计 · 创作者工具</span>
+          <span>每周五出版</span>
+        </div>
+      </div>
+
+      <div class="bs-lead">
+        <div class="bs-kicker">深度报道 · AI 工具</div>
+        <div class="bs-headline">当 AI 开始能「做事」，创作者的工作边界正在消失</div>
+        <div class="bs-standfirst">从内容生成到工作流自动化，这一轮 Agent 技术浪潮将彻底重塑个人创作者与大型机构之间的竞争格局</div>
+      </div>
+
+      <div class="bs-columns">
+        <div class="bs-byline">BY GEEK JOURNEY · 2025年4月25日</div>
+
+        <p class="bs-body bs-dropcap">两年前，AI 写作工具的极限是"帮你把初稿写完"。今天，一个训练有素的创作者能用 Claude 在周五下午独立完成选题、调研、成稿、出图、排版、发布——过去这需要一个三人小团队一周的工作量。</p>
+
+        <p class="bs-body">这不是夸张。这是正在发生的结构性转变：个人效率的上限被拉高，意味着小创作者第一次拥有了接近机构媒体的生产能力。而这恰恰是双刃剑——平台上内容的总量以同样的速度膨胀，注意力反而变得更稀缺。</p>
+
+        <!-- BROADSHEET PULL QUOTE: SVG 大号引言符 + 精确布局 -->
+        <div class="bs-pullquote">
+          <!-- SVG 大引言符：Georgia 字体级别，半透明，不影响阅读 -->
+          <svg style="position:absolute;top:-8px;left:28px;pointer-events:none;z-index:0"
+               width="80" height="68" viewBox="0 0 80 68" aria-hidden="true">
+            <text x="0" y="62" font-family="Georgia,'Times New Roman',serif"
+                  font-size="88" fill="#c96442" opacity="0.09" font-weight="400">"</text>
+          </svg>
+          <div class="pq-inner">
+            <div class="pq-rule"></div>
+            <div class="pq-text">
+              AI 不会让你失去创作者的身份，但它会让那些不会使用它的人，慢慢失去被看见的机会。
+            </div>
+            <div class="pq-attr">极客旅程<br>2025年4月</div>
+          </div>
+        </div>
+
+        <p class="bs-body">真正的竞争优势正在从"产量"转向"判断力"——能不能快速判断什么值得做、能不能把 AI 的输出校准到自己的风格，这些才是决定胜负的核心变量。</p>
+
+        <p class="bs-body">工具永远不是门槛，门槛是对内容本质的理解：什么是读者真正想要的、一篇文章的核心论点是什么、什么时候该停笔。这些判断，AI 仍然无法替代。</p>
+
+        <!-- SVG 三菱装饰分割线：替换 Unicode — ✦ — -->
+        <div class="svg-divider">
+          <svg width="210" height="16" viewBox="0 0 210 16" fill="none" aria-hidden="true">
+            <line x1="0" y1="8" x2="84" y2="8" stroke="#b0aea5" stroke-width="0.6" stroke-linecap="round"/>
+            <circle cx="90" cy="8" r="2" fill="#87867f"/>
+            <!-- 中心菱形：terracotta -->
+            <polygon points="105,3.5 111,8 105,12.5 99,8" fill="#c96442"/>
+            <circle cx="120" cy="8" r="2" fill="#87867f"/>
+            <line x1="126" y1="8" x2="210" y2="8" stroke="#b0aea5" stroke-width="0.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <p class="bs-body">过去六个月，我测试了数十种 AI 辅助创作工作流，从全程 AI 写作到人机协作，最终发现最高效的模式不是"让 AI 写"，而是"让 AI 思考，人来判断"。</p>
+      </div>
+
+      <div class="bs-footer">
+        <span>极客旅程评论 · GeekJourney Review</span>
+        <span>第 12 版 · 2025</span>
+      </div>
+
+    </div>
+  </div>
+  <div class="lw-meta">
+    <div class="lm-name">The Broadsheet · SVG 增强</div>
+    <div class="lm-desc">SVG 三菱分割线 + 88px 引言符水印 · 替换所有 Unicode 装饰</div>
+  </div>
+</div>
+
+
+<!-- ============================
+     LAYOUT 2: THE FEATURE
+     ============================ -->
+<div class="sec-label">格式二 · The Feature · SVG 编辑插图</div>
+<div class="sec-sub">Bauhaus 几何构成插图 · 侧边栏网点底纹 · SVG 引言符</div>
+
+<div class="layout-wrapper" data-choice="feature" onclick="toggleSelect(this)">
+  <div class="lw-shell">
+    <div class="feature">
+
+      <div class="feat-header">
+        <div class="feat-kicker">深度报道 · 特稿</div>
+        <div class="feat-headline">一张图胜过<br>千字解释</div>
+        <div class="feat-standfirst">信息设计不是装饰，而是理解的基础设施。当视觉表达与文字表达同等重要，创作者才真正掌握了传播的主动权。</div>
+      </div>
+
+      <div class="feat-meta-bar">
+        <div>作者：<span>极客旅程</span></div>
+        <div>发布：<span>2025年4月25日</span></div>
+        <div>阅读：<span>约 8 分钟</span></div>
+      </div>
+
+      <div class="feat-body">
+        <div class="feat-main">
+
+          <!-- SVG Bauhaus 编辑插图 —— 信息设计主题 -->
+          <div class="feat-illustration">
+            <svg viewBox="0 0 420 148" width="420" height="148" fill="none" aria-hidden="true">
+              <!-- 背景网格（极淡，只做空间感） -->
+              <line x1="140" y1="0" x2="140" y2="148" stroke="#141413" stroke-width="0.4" opacity="0.08"/>
+              <line x1="280" y1="0" x2="280" y2="148" stroke="#141413" stroke-width="0.4" opacity="0.08"/>
+              <line x1="0" y1="74" x2="420" y2="74" stroke="#141413" stroke-width="0.4" opacity="0.08"/>
+
+              <!-- 左侧：「文字/信息」抽象为堆叠横条 -->
+              <rect x="20" y="28" width="85" height="4" fill="#141413" opacity="0.18" rx="2"/>
+              <rect x="20" y="38" width="70" height="4" fill="#141413" opacity="0.14" rx="2"/>
+              <rect x="20" y="48" width="90" height="4" fill="#141413" opacity="0.18" rx="2"/>
+              <rect x="20" y="58" width="60" height="4" fill="#141413" opacity="0.10" rx="2"/>
+              <rect x="20" y="68" width="80" height="4" fill="#141413" opacity="0.14" rx="2"/>
+              <!-- 「关键洞察」高亮横条（terracotta） -->
+              <rect x="20" y="82" width="90" height="10" fill="#c96442" opacity="0.55" rx="2"/>
+              <!-- 继续文字 -->
+              <rect x="20" y="100" width="75" height="4" fill="#141413" opacity="0.12" rx="2"/>
+              <rect x="20" y="110" width="88" height="4" fill="#141413" opacity="0.12" rx="2"/>
+
+              <!-- 转化箭头 -->
+              <path d="M 118 74 L 148 74" stroke="#c96442" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M 140 68 L 148 74 L 140 80" stroke="#c96442" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <!-- 中央：大圆（「洞见 / 视野」） -->
+              <circle cx="210" cy="74" r="58" stroke="#c96442" stroke-width="1.2" opacity="0.30"/>
+              <circle cx="210" cy="74" r="38" stroke="#141413" stroke-width="0.5" opacity="0.08"/>
+              <!-- 圆内中心点 -->
+              <circle cx="210" cy="74" r="5" fill="#c96442" opacity="0.6"/>
+              <!-- 圆内十字 -->
+              <line x1="210" y1="40" x2="210" y2="108" stroke="#141413" stroke-width="0.5" opacity="0.12"/>
+              <line x1="176" y1="74" x2="244" y2="74" stroke="#141413" stroke-width="0.5" opacity="0.12"/>
+
+              <!-- 右侧：「可视化」— mini 柱状图 -->
+              <!-- 基线 -->
+              <line x1="285" y1="120" x2="400" y2="120" stroke="#141413" stroke-width="0.8" opacity="0.2"/>
+              <!-- 柱子 -->
+              <rect x="293" y="90" width="16" height="30" fill="#87867f" opacity="0.30" rx="1"/>
+              <rect x="315" y="68" width="16" height="52" fill="#87867f" opacity="0.30" rx="1"/>
+              <rect x="337" y="44" width="16" height="76" fill="#c96442" opacity="0.50" rx="1"/>
+              <rect x="359" y="58" width="16" height="62" fill="#87867f" opacity="0.30" rx="1"/>
+              <rect x="381" y="76" width="16" height="44" fill="#87867f" opacity="0.20" rx="1"/>
+              <!-- 最高柱的数值标注 -->
+              <text x="345" y="40" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="#c96442" opacity="0.8">↑</text>
+
+              <!-- 对角引导线（极淡） -->
+              <line x1="20" y1="28" x2="400" y2="120" stroke="#c96442" stroke-width="0.5" opacity="0.10" stroke-dasharray="5 8"/>
+
+              <!-- 右上角装饰小圆（Bauhaus 签名元素） -->
+              <circle cx="390" cy="24" r="10" fill="#c96442" opacity="0.55"/>
+              <circle cx="390" cy="24" r="6" fill="#c96442" opacity="0.15"/>
+            </svg>
+            <div class="feat-illustration-label">信息设计构成 · Bauhaus 风格</div>
+          </div>
+
+          <p class="feat-p feat-dropcap">我们生活在一个信息密度极高的时代，但大多数人描述世界的方式还停留在纯文字阶段。一篇文章写了两千字，读者记住的可能只有一两个金句；而一张设计良好的图，读者五秒扫过，核心结论已经进入长期记忆。</p>
+
+          <p class="feat-p">这不是说视觉优于文字——它们服务于不同的认知需求。文字负责建立逻辑链，视觉负责建立直觉印象。好的内容往往需要两者配合：文字打底、视觉收尾，或者反过来。</p>
+
+          <!-- SVG 引言符：大号 + 低透明度 -->
+          <div class="feat-pullquote">
+            <svg style="position:absolute;top:-12px;left:-8px;pointer-events:none;z-index:0"
+                 width="72" height="62" viewBox="0 0 72 62" aria-hidden="true">
+              <text x="0" y="56" font-family="Georgia,'Times New Roman',serif"
+                    font-size="84" fill="#c96442" opacity="0.10">"</text>
+            </svg>
+            <div class="fpq-text">设计不是让东西看起来好看，而是让信息被正确地理解。好的信息设计是隐形的。</div>
+            <div class="fpq-attr">信息设计原则 · Edward Tufte</div>
+          </div>
+
+          <p class="feat-p">问题是，大多数创作者没有受过视觉设计训练，也没有时间学习设计工具。这正是 AI 辅助设计工具最有价值的地方：它把「设计判断」和「设计执行」分开，让创作者专注于判断，把执行交给工具。</p>
+
+          <p class="feat-p">claude-design-card 的核心假设是：创作者需要的不是一个「设计工具」，而是一个「内容→图像」的翻译层，让好内容自然生成好视觉。</p>
+        </div>
+
+        <div class="feat-sidebar">
+          <!-- 侧边栏网点底纹 SVG -->
+          <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none" aria-hidden="true">
+            <rect width="100%" height="100%" fill="url(#dot-halftone)"/>
+          </svg>
+
+          <div style="position:relative;z-index:1">
+            <div class="feat-sb-label">相关数据</div>
+
+            <div class="feat-sb-stat">
+              <div class="ss-num">94%</div>
+              <div class="ss-label">带图内容的社交媒体互动率高于纯文字</div>
+            </div>
+
+            <div class="feat-sb-stat">
+              <div class="ss-num">3.2×</div>
+              <div class="ss-label">图文并茂文章的平均分享率</div>
+            </div>
+
+            <div class="feat-sb-label" style="margin-top: 20px;">延伸阅读</div>
+
+            <div class="feat-sb-item">
+              <div class="si-title">《The Visual Display of Quantitative Information》</div>
+              <div class="si-desc">Edward Tufte · 信息设计经典</div>
+            </div>
+
+            <div class="feat-sb-item">
+              <div class="si-title">《万物解释者》</div>
+              <div class="si-desc">Randall Munroe · 用图解释复杂世界</div>
+            </div>
+
+            <div class="feat-sb-item">
+              <div class="si-title">《设计中的设计》</div>
+              <div class="si-desc">原研哉 · 日式极简设计哲学</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="lw-meta">
+    <div class="lm-name">The Feature · SVG 编辑插图</div>
+    <div class="lm-desc">Bauhaus 几何构成 + 侧边栏网点纹 + SVG 引言符</div>
+  </div>
+</div>
+
+
+<!-- ============================
+     LAYOUT 3: THE READER
+     ============================ -->
+<div class="sec-label">格式三 · The Reader · SVG 边注符</div>
+<div class="sec-sub">三圆节点分割线 · SVG 指示符替换边注标签 · 引言符水印</div>
+
+<div class="layout-wrapper" data-choice="reader" onclick="toggleSelect(this)">
+  <div class="lw-shell">
+    <div class="reader">
+
+      <div class="reader-header">
+        <div class="reader-running-head">
+          <span>THE READER · 极客旅程文学评论</span>
+          <span>2025年4月 · 第十七期</span>
+        </div>
+        <div class="reader-section-tag">随笔 · 技术与人文</div>
+        <div class="reader-headline">慢下来，才能看见<br>工具背后的人</div>
+        <div class="reader-byline">文 / 极客旅程 · 2025年4月25日</div>
+        <div class="reader-standfirst">在效率被奉为最高准则的时代，我们失去了某种更珍贵的东西：对工具本身的好奇，对使用工具的人的理解，以及对「为什么要做」这个问题的耐心。</div>
+      </div>
+
+      <div class="reader-body">
+        <div class="reader-text">
+          <p class="reader-p reader-dropcap">工具会说话。不是字面意义上的，而是说：每一种工具都预设了一种使用它的方式，预设了什么算「高效」、什么算「正确」。斧头告诉你应该站着、应该挥臂；电子邮件告诉你应该简洁、应该有主题行。</p>
+
+          <p class="reader-p">AI 工具也不例外。当你第一次用 Claude 生成一篇文章，它给你的不只是文字——它给你的是一套关于「文章应该长什么样」的隐含标准。如果你不加甄别地接受，一段时间后，你会发现自己的写作风格已经悄悄向工具的输出靠拢了。</p>
+
+          <!-- READER PULL QUOTE with SVG -->
+          <div class="reader-pullquote">
+            <!-- SVG 双引号水印，比 The Feature 更淡，文学气质 -->
+            <svg style="position:absolute;top:4px;left:36px;pointer-events:none;z-index:0"
+                 width="60" height="52" viewBox="0 0 60 52" aria-hidden="true">
+              <text x="0" y="46" font-family="Georgia,'Times New Roman',serif"
+                    font-size="70" fill="#141413" opacity="0.07">"</text>
+            </svg>
+            <div class="rq-text" style="position:relative;z-index:1">我们塑造工具，然后工具反过来塑造我们。关键在于：你是否意识到这件事正在发生？</div>
+            <!-- SVG 三圆节点装饰（替换 ✦ ✦ ✦） -->
+            <div style="display:flex;justify-content:center;margin-top:12px;position:relative;z-index:1">
+              <svg width="56" height="10" viewBox="0 0 56 10" fill="none" aria-hidden="true">
+                <circle cx="10" cy="5" r="2.5" fill="#87867f" opacity="0.6"/>
+                <circle cx="28" cy="5" r="3.5" fill="#c96442" opacity="0.75"/>
+                <circle cx="46" cy="5" r="2.5" fill="#87867f" opacity="0.6"/>
+              </svg>
+            </div>
+          </div>
+
+          <p class="reader-p">这不是说 AI 工具有害，而是说：所有工具都需要有意识地使用。好的工具使用者知道工具的边界在哪里——知道什么时候应该关掉它，什么时候应该无视它的建议，什么时候应该按下删除键，从零开始写那个更诚实的版本。</p>
+
+          <!-- SVG 节点分割线：替换 — ✦ — -->
+          <div class="svg-section-break">
+            <svg width="140" height="16" viewBox="0 0 140 16" fill="none" aria-hidden="true">
+              <line x1="0" y1="8" x2="52" y2="8" stroke="#b0aea5" stroke-width="0.5" stroke-linecap="round"/>
+              <circle cx="57" cy="8" r="2" fill="#87867f"/>
+              <!-- 中心双圈 -->
+              <circle cx="70" cy="8" r="5" stroke="#c96442" stroke-width="0.9" opacity="0.7"/>
+              <circle cx="70" cy="8" r="2" fill="#c96442" opacity="0.7"/>
+              <circle cx="83" cy="8" r="2" fill="#87867f"/>
+              <line x1="88" y1="8" x2="140" y2="8" stroke="#b0aea5" stroke-width="0.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <p class="reader-p">我在反思自己使用 AI 写作的这一年。最大的收获不是速度的提升，而是一种奇怪的清醒：当我看着 AI 生成的初稿，我能更清楚地看见自己想说的和 AI 说的有什么不同。那个「不同」，才是我真正需要保护的东西。</p>
+        </div>
+
+        <div class="reader-margin">
+          <!-- SVG 指示符替换边注文字标签 -->
+          <div class="marginalia">
+            <div class="mn-ref-svg">
+              <!-- SVG 指示符：传统校对手势箭头 -->
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true">
+                <path d="M2 6 L13 6" stroke="#c96442" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M9 2 L13 6 L9 10" stroke="#c96442" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 3 L2 9" stroke="#c96442" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+              <span>注 · 麦克卢汉</span>
+            </div>
+            <div class="mn-text">马歇尔·麦克卢汉在 1964 年提出「媒介即信息」。他认为工具本身比工具传递的内容更重要。</div>
+          </div>
+
+          <div class="marginalia">
+            <div class="mn-ref-svg">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true">
+                <path d="M2 6 L13 6" stroke="#c96442" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M9 2 L13 6 L9 10" stroke="#c96442" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 3 L2 9" stroke="#c96442" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+              <span>编者按</span>
+            </div>
+            <div class="mn-text">本文是「人与工具」系列的第三篇。前两篇讨论了搜索引擎和社交媒体对写作的影响。</div>
+          </div>
+
+          <div class="marginalia">
+            <div class="mn-ref-svg">
+              <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true">
+                <path d="M2 6 L13 6" stroke="#c96442" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M9 2 L13 6 L9 10" stroke="#c96442" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M2 3 L2 9" stroke="#c96442" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+              <span>延伸</span>
+            </div>
+            <div class="mn-text">尼尔·波兹曼《娱乐至死》对媒介形态与思维方式关系的分析，至今仍然有效。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reader-footer">
+        <span>极客旅程文学评论 · GeekJourney Review</span>
+        <span>P. 12</span>
+      </div>
+
+    </div>
+  </div>
+  <div class="lw-meta">
+    <div class="lm-name">The Reader · SVG 边注符</div>
+    <div class="lm-desc">三圆节点分割线 + 指示符箭头 + 双圆中心 pull quote 装饰</div>
+  </div>
+</div>
+
+
+<!-- ============================
+     LAYOUT 4: THE DIGEST
+     ============================ -->
+<div class="sec-label">格式四 · The Digest · SVG 数据可视化</div>
+<div class="sec-sub">SVG 动态折线图 · 进度条 · 数字圆徽章 · 让数字被「读出来」</div>
+
+<div class="layout-wrapper" data-choice="digest" onclick="toggleSelect(this)">
+  <div class="lw-shell">
+    <div class="digest">
+
+      <div class="digest-header">
+        <div class="dg-vol">
+          <span>极客旅程研究院</span>
+          <span>·</span>
+          <span>AI 工具观察</span>
+          <span>·</span>
+          <span>第 2025/04 期</span>
+        </div>
+        <div class="dg-title">AI 创作工具的<br>效率悖论</div>
+        <div class="dg-subtitle">工具越强大，创作者的核心竞争力反而变得更难定义——这是一个关于判断力、品位与不可替代性的分析。</div>
+      </div>
+
+      <div class="digest-abstract">
+        <div class="dg-abstract-label">摘要</div>
+        <div class="dg-abstract-text">当 AI 工具将内容生产效率提升 3-5 倍，平台内容供给量随之爆炸，注意力稀缺程度同步加剧。本文分析这一「效率悖论」背后的结构性原因，并提出创作者建立差异化竞争力的三个核心维度。</div>
+      </div>
+
+      <div class="dg-section">
+        <div class="dg-running-head">
+          <!-- SVG 数字圆徽章：替换 I. 文字 -->
+          <div class="dg-running-num">
+            <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+              <circle cx="13" cy="13" r="12" fill="#c96442" opacity="0.12"/>
+              <circle cx="13" cy="13" r="12" stroke="#c96442" stroke-width="0.8" fill="none"/>
+              <text x="13" y="17.5" text-anchor="middle" font-family="Georgia,serif"
+                    font-size="12" fill="#c96442" font-style="italic">I</text>
+            </svg>
+          </div>
+          <div class="dg-running-title">问题的本质</div>
+          <div class="dg-running-page">P.1</div>
+        </div>
+        <div class="dg-section-title">效率的提升并不等于竞争优势的提升</div>
+      </div>
+
+      <div class="dg-body-grid">
+        <div class="dg-body-text">
+          <p class="dg-p">当一项生产力工具被所有人使用，它带来的效率增益会迅速从「竞争优势」变成「行业底线」。这是技术扩散的基本规律，AI 写作工具也不例外。</p>
+          <p class="dg-p">2023 年初，会使用 GPT-4 辅助写作的创作者拥有显著优势。到 2025 年，这已经是标配。<strong>真正的差异化再次回归到最古老的问题</strong>：你有没有值得说的东西，你说它的方式有没有自己的声音。</p>
+          <p class="dg-p">工具只能压缩执行成本，无法压缩判断成本——「判断什么值得做」仍然是人类的核心责任。</p>
+
+          <!-- SVG 折线趋势图：内嵌于正文，编辑手绘风格 -->
+          <div style="background:var(--pg);border:1px solid var(--bc);padding:14px 16px;margin-top:4px">
+            <div style="font-size:9px;font-weight:500;letter-spacing:0.6px;text-transform:uppercase;color:var(--sg);margin-bottom:8px">
+              内容产量 vs 平均收益 · 2022–2025
+            </div>
+            <svg width="100%" height="64" viewBox="0 0 340 64" fill="none" aria-hidden="true"
+                 style="display:block">
+              <!-- 背景格线 -->
+              <line x1="0" y1="16" x2="340" y2="16" stroke="#e8e6dc" stroke-width="0.5"/>
+              <line x1="0" y1="32" x2="340" y2="32" stroke="#e8e6dc" stroke-width="0.5"/>
+              <line x1="0" y1="48" x2="340" y2="48" stroke="#e8e6dc" stroke-width="0.5"/>
+              <!-- X 轴 -->
+              <line x1="0" y1="58" x2="340" y2="58" stroke="#141413" stroke-width="0.6" opacity="0.25"/>
+
+              <!-- 折线1：内容产量（上升）terracotta -->
+              <polyline class="spark-line"
+                        points="0,52 56,44 113,36 170,22 227,14 283,8 340,6"
+                        stroke="#c96442" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 折线1 面积填充 -->
+              <path d="M0,52 L56,44 L113,36 L170,22 L227,14 L283,8 L340,6 L340,58 L0,58 Z"
+                    fill="#c96442" opacity="0.06"/>
+
+              <!-- 折线2：平均收益（下降）near-black -->
+              <polyline points="0,24 56,26 113,30 170,34 227,38 283,44 340,50"
+                        stroke="#141413" stroke-width="1.2" stroke-dasharray="4 3"
+                        stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+
+              <!-- 图例 -->
+              <rect x="0" y="0" width="10" height="3" fill="#c96442" rx="1.5"/>
+              <text x="14" y="4.5" font-family="-apple-system,sans-serif" font-size="7" fill="#87867f">内容产量</text>
+              <line x1="80" y1="2" x2="90" y2="2" stroke="#141413" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.5"/>
+              <text x="94" y="4.5" font-family="-apple-system,sans-serif" font-size="7" fill="#87867f">平均收益</text>
+
+              <!-- X 轴标签 -->
+              <text x="0" y="64" font-family="-apple-system,sans-serif" font-size="7" fill="#87867f">2022</text>
+              <text x="154" y="64" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7" fill="#87867f">2023</text>
+              <text x="283" y="64" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="7" fill="#87867f">2024</text>
+              <text x="340" y="64" text-anchor="end" font-family="-apple-system,sans-serif" font-size="7" fill="#87867f">2025</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="dg-body-data">
+          <!-- SVG 进度条：5× 增幅 -->
+          <div class="dg-callout">
+            <div class="dc-num">5×<em>↑</em></div>
+            <div class="dc-label">AI 辅助创作者的平均内容产量增幅</div>
+            <svg width="100%" height="6" viewBox="0 0 130 6" aria-hidden="true" style="display:block;margin-top:8px">
+              <rect x="0" y="0" width="130" height="6" fill="#e8e6dc" rx="3"/>
+              <line class="prog-5x" x1="3" y1="3" x2="127" y2="3"
+                    stroke="#c96442" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- SVG 进度条：-12% 下降 -->
+          <div class="dg-callout">
+            <div class="dc-num" style="color:var(--og)">-12<em style="color:var(--sg)">%</em></div>
+            <div class="dc-label">同期内容创作者平均单篇收益变化</div>
+            <svg width="100%" height="6" viewBox="0 0 130 6" aria-hidden="true" style="display:block;margin-top:8px">
+              <rect x="0" y="0" width="130" height="6" fill="#e8e6dc" rx="3"/>
+              <line class="prog-neg" x1="3" y1="3" x2="127" y2="3"
+                    stroke="#87867f" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- SVG 进度条：67% -->
+          <div class="dg-callout">
+            <div class="dc-num">67<em>%</em></div>
+            <div class="dc-label">受访创作者认为「声音独特性」比「产量」更重要</div>
+            <svg width="100%" height="6" viewBox="0 0 130 6" aria-hidden="true" style="display:block;margin-top:8px">
+              <rect x="0" y="0" width="130" height="6" fill="#e8e6dc" rx="3"/>
+              <line class="prog-67" x1="3" y1="3" x2="127" y2="3"
+                    stroke="#c96442" stroke-width="6" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="dg-finding">
+        <div class="dg-finding-label">关键发现</div>
+        <ul class="dg-finding-items">
+          <li>
+            <!-- SVG 箭头：替换 CSS content → -->
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="flex-shrink:0;margin-top:2px">
+              <path d="M2 7 L10 7 M7 3 L10 7 L7 11" stroke="#c96442" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            效率提升是行业底线，不是竞争优势。真正稀缺的是判断力与原创声音。
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="flex-shrink:0;margin-top:2px">
+              <path d="M2 7 L10 7 M7 3 L10 7 L7 11" stroke="#c96442" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            AI 工具最大的价值在于「压缩试错成本」，而不是「替代创意决策」。
+          </li>
+          <li>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="flex-shrink:0;margin-top:2px">
+              <path d="M2 7 L10 7 M7 3 L10 7 L7 11" stroke="#c96442" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            能驾驭 AI 工具并保持自身风格的创作者，将占据下一轮注意力市场的核心位置。
+          </li>
+        </ul>
+      </div>
+
+      <div class="digest-footer">
+        <span>极客旅程研究院 · 2025</span>
+        <span>本报告可自由转载，注明来源</span>
+      </div>
+
+    </div>
+  </div>
+  <div class="lw-meta">
+    <div class="lm-name">The Digest · SVG 数据可视化</div>
+    <div class="lm-desc">动态折线图 + 进度条动画 + 圆形徽章 + SVG 箭头</div>
+  </div>
+</div>
+
+
+<div class="thinking-box" style="margin-top:8px">
+  <div class="tb-label">SVG 使用原则 · 设计决策</div>
+  <strong>7 种 SVG 元素，7 种具体工作：</strong><br><br>
+  ① <strong>三菱分割线</strong> — 用数学精度做活字印刷时代的版刻线，CSS 做不到这个精度<br>
+  ② <strong>88px 引言符</strong> — 半透明水印，字体渲染在大尺寸时失真，SVG 路径最稳定<br>
+  ③ <strong>Bauhaus 插图</strong> — 几何构成代替摄影，「文字→洞察→可视化」的叙事弧<br>
+  ④ <strong>网点底纹</strong> — &lt;pattern&gt; 在侧边栏做印刷网点质感，区分内容区<br>
+  ⑤ <strong>指示符箭头</strong> — 校对传统的 manicule 简化版，比文字标签更视觉化<br>
+  ⑥ <strong>动态折线图</strong> — stroke-dasharray 动画让数据被「读出来」，不只是展示<br>
+  ⑦ <strong>进度条动画</strong> — 百分比的视觉语言，让量级感直觉化<br><br>
+  点击任意格局可选择，或告诉我哪部分需要调整。
+</div>
+
+<script>
+function toggleSelect(el) {
+  document.querySelectorAll('.layout-wrapper').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const name = el.querySelector('.lm-name')?.textContent || el.dataset.choice;
+  if (window.selectOption) window.selectOption(el.dataset.choice, name);
+}
+</script>
+
+</body>
+</html>
