@@ -1,5 +1,5 @@
 ---
-name: any2card
+name: claude-design-card
 description: |
   将任意文本、网页或 URL 转成可直接发布的 HTML 信息卡片。
   适合把文章、线程、论文、观点、数据摘要做成适合微信、小红书、X 发布的图片卡。
