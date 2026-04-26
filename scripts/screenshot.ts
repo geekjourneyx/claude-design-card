@@ -61,9 +61,12 @@ if (!existsSync(inputPath)) {
 const outputPath = resolve(outputPng);
 
 // --- Screenshot ---
+const DPR = 2; // 2x Retina: 1 CSS px → 4 physical px, crisp on all modern displays
+
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage();
+  const context = await browser.newContext({ deviceScaleFactor: DPR });
+  const page = await context.newPage();
 
   if (fullPage) {
     await page.setViewportSize({ width: w, height: 800 });
@@ -72,13 +75,13 @@ const outputPath = resolve(outputPng);
     const contentHeight = await page.evaluate(() => document.documentElement.scrollHeight);
     await page.setViewportSize({ width: w, height: contentHeight });
     await page.screenshot({ path: outputPath, fullPage: true });
-    console.log(`✅ Saved: ${outputPath} (${w}×${contentHeight}px)`);
+    console.log(`✅ Saved: ${outputPath} (${w * DPR}×${contentHeight * DPR}px @${DPR}x)`);
   } else {
     await page.setViewportSize({ width: w, height: h });
     await page.goto(`file://${inputPath}`);
     await page.waitForTimeout(3000);
     await page.screenshot({ path: outputPath, clip: { x: 0, y: 0, width: w, height: h } });
-    console.log(`✅ Saved: ${outputPath} (${w}×${h}px)`);
+    console.log(`✅ Saved: ${outputPath} (${w * DPR}×${h * DPR}px @${DPR}x)`);
   }
 
   await browser.close();
