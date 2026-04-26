@@ -8,7 +8,10 @@ const args = process.argv.slice(2);
 
 // Extract --url (optional, may appear anywhere in args)
 const urlIdx = args.indexOf('--url');
-const qrUrl: string | null = (urlIdx !== -1 && args[urlIdx + 1]) ? args[urlIdx + 1] : null;
+const qrUrl: string | null =
+  (urlIdx !== -1 && args[urlIdx + 1] && !args[urlIdx + 1].startsWith('--'))
+    ? args[urlIdx + 1]
+    : null;
 // Remove --url and its value from args so they don't interfere with positional parsing
 const cleanArgs = urlIdx !== -1
   ? [...args.slice(0, urlIdx), ...args.slice(urlIdx + 2)]
@@ -72,6 +75,31 @@ const outputPath = resolve(outputPng);
 // --- Screenshot ---
 const DPR = 2; // 2x Retina: 1 CSS px → 4 physical px, crisp on all modern displays
 
+async function injectQrCode(page: import('playwright').Page, url: string): Promise<void> {
+  await page.evaluate(async (u: string) => {
+    await new Promise<void>((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('qrcode.js CDN load failed'));
+      document.head.appendChild(s);
+    }).catch(() => {}); // silent fail — screenshot continues
+    const zone = document.getElementById('qr-zone');
+    if (zone && (window as any).QRCode) {
+      zone.style.display = '';
+      const size = parseInt(zone.dataset.qrSize || '48', 10);
+      new (window as any).QRCode(zone, {
+        text: u,
+        width: size,
+        height: size,
+        colorDark: '#141413',
+        colorLight: 'transparent',
+      });
+    }
+  }, url);
+  await page.waitForTimeout(500);
+}
+
 (async () => {
   const browser = await chromium.launch();
   const context = await browser.newContext({ deviceScaleFactor: DPR });
@@ -81,30 +109,7 @@ const DPR = 2; // 2x Retina: 1 CSS px → 4 physical px, crisp on all modern dis
     await page.setViewportSize({ width: w, height: 800 });
     await page.goto(`file://${inputPath}`);
     await page.waitForTimeout(3000);
-    if (qrUrl) {
-      await page.evaluate(async (url: string) => {
-        await new Promise<void>((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-          s.onload = () => resolve();
-          s.onerror = () => reject(new Error('qrcode.js CDN load failed'));
-          document.head.appendChild(s);
-        }).catch(() => {}); // 静默失败，截图仍然继续
-        const zone = document.getElementById('qr-zone');
-        if (zone && (window as any).QRCode) {
-          zone.style.display = '';
-          const size = parseInt((zone as HTMLElement).dataset.qrSize || '48', 10);
-          new (window as any).QRCode(zone, {
-            text: url,
-            width: size,
-            height: size,
-            colorDark: '#141413',
-            colorLight: 'transparent',
-          });
-        }
-      }, qrUrl);
-      await page.waitForTimeout(500); // 等 canvas 渲染完成
-    }
+    if (qrUrl) await injectQrCode(page, qrUrl);
     const contentHeight = await page.evaluate(() => document.documentElement.scrollHeight);
     await page.setViewportSize({ width: w, height: contentHeight });
     await page.screenshot({ path: outputPath, fullPage: true });
@@ -113,30 +118,7 @@ const DPR = 2; // 2x Retina: 1 CSS px → 4 physical px, crisp on all modern dis
     await page.setViewportSize({ width: w, height: h });
     await page.goto(`file://${inputPath}`);
     await page.waitForTimeout(3000);
-    if (qrUrl) {
-      await page.evaluate(async (url: string) => {
-        await new Promise<void>((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-          s.onload = () => resolve();
-          s.onerror = () => reject(new Error('qrcode.js CDN load failed'));
-          document.head.appendChild(s);
-        }).catch(() => {}); // 静默失败，截图仍然继续
-        const zone = document.getElementById('qr-zone');
-        if (zone && (window as any).QRCode) {
-          zone.style.display = '';
-          const size = parseInt((zone as HTMLElement).dataset.qrSize || '48', 10);
-          new (window as any).QRCode(zone, {
-            text: url,
-            width: size,
-            height: size,
-            colorDark: '#141413',
-            colorLight: 'transparent',
-          });
-        }
-      }, qrUrl);
-      await page.waitForTimeout(500); // 等 canvas 渲染完成
-    }
+    if (qrUrl) await injectQrCode(page, qrUrl);
     await page.screenshot({ path: outputPath, clip: { x: 0, y: 0, width: w, height: h } });
     console.log(`✅ Saved: ${outputPath} (${w * DPR}×${h * DPR}px @${DPR}x)`);
   }
