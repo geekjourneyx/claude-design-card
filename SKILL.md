@@ -387,6 +387,9 @@ Feature 风格，需要头图区域？
 
 输出：主标题、副标题、4-6 个要点、1 句金句、来源信息。
 
+**QR 检测**：若用户消息中包含 URL（如 `https://...`）或明确说「附带二维码 / 扫码跳转」，
+提取该 URL 记为 `QR_URL`，后续步骤中使用。否则 `QR_URL` 为空，跳过所有 QR 相关步骤。
+
 ### Step 2：选格式
 
 根据内容类型和目标平台，选定格式族和具体格式，确认尺寸。
@@ -420,6 +423,46 @@ Feature 风格，需要头图区域？
 ```
 
 > 完整设计规范参见 [`references/design-spec.md`](references/design-spec.md)（CSS 变量、格式尺寸、SVG 快查表）。
+
+**QR Zone 插入（仅当 `QR_URL` 非空时）**
+
+根据当前格式，在 HTML 正确位置插入 `#qr-zone` div。外层容器若为浮层方案需设 `position:relative`。
+
+| 格式族 | 插入位置 | 尺寸 |
+|:---|:---|:---|
+| 方形卡 / 竖版卡 / 视频号 / 公众号封面 | 卡片容器内，最后一个子元素 | 48×48px |
+| 小红书图文笔记 / 长图 | 卡片最底部（滚动内容之后） | 48×48px |
+| The Feature 双栏 | 右侧栏内，内容最末 | 52×52px |
+| The Vintage Broadsheet | article 底部 | 48×48px |
+
+```html
+<!-- 右下角浮层（方形卡 / 竖版卡 / 视频号 / 公众号）-->
+<div id="qr-zone" data-qr-size="48" style="
+  display:none; position:absolute; right:16px; bottom:16px;
+  width:48px; height:48px; background:#141413;
+  border-radius:4px; padding:4px; box-sizing:border-box;
+"></div>
+
+<!-- 底部深色栏（小红书 / 长图）-->
+<div id="qr-zone" data-qr-size="48" style="
+  display:none; width:100%; box-sizing:border-box;
+  background:#141413; padding:12px 16px;
+"></div>
+
+<!-- 侧栏内嵌（The Feature 双栏）-->
+<div id="qr-zone" data-qr-size="52" style="
+  display:none; margin-top:auto; padding-top:12px;
+"></div>
+
+<!-- 底部浅色栏（The Vintage Broadsheet）-->
+<div id="qr-zone" data-qr-size="48" style="
+  display:none; border-top:1px solid #c8bfa8;
+  padding:12px 0; margin-top:16px;
+"></div>
+```
+
+> QR 颜色规范：`colorDark: #141413`，`colorLight: transparent`（由 screenshot.ts 控制）。
+
 ### Step 5：保存 HTML 并通知用户
 
 \`\`\`
@@ -444,6 +487,10 @@ bun scripts/screenshot.ts /tmp/claude-card-[关键词].html [output.png] [width]
 
 # 长文编辑排版（自动高度）：
 bun scripts/screenshot.ts /tmp/claude-card-[关键词].html [output.png] [width] --full-page
+
+# 附带二维码（QR_URL 非空时，在命令末尾追加）：
+bun scripts/screenshot.ts /tmp/claude-card-[关键词].html [output.png] [width] [height] --url [QR_URL]
+bun scripts/screenshot.ts /tmp/claude-card-[关键词].html [output.png] [width] --full-page --url [QR_URL]
 
 # 脚本内部已设置 waitForTimeout(3000)，确保 SVG 动画在截图前完成
 \`\`\`
