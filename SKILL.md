@@ -430,38 +430,45 @@ Feature 风格，需要头图区域？
 
 | 格式族 | 插入位置 | 尺寸 |
 |:---|:---|:---|
-| 方形卡 / 竖版卡 / 视频号 / 公众号封面 | 卡片容器内，最后一个子元素 | 48×48px |
-| 小红书图文笔记 / 长图 | 卡片最底部（滚动内容之后） | 48×48px |
-| The Feature 双栏 | 右侧栏内，内容最末 | 52×52px |
-| The Vintage Broadsheet | article 底部 | 48×48px |
+| 方形卡 / 竖版卡 / 视频号 / 公众号封面 | 卡片容器内，最后一个子元素 | 80×80px |
+| 小红书图文笔记 / 长图 | 卡片最底部（滚动内容之后） | 80×80px |
+| The Feature 双栏 | 右侧栏内，内容最末 | 72×72px |
+| The Vintage Broadsheet | article 底部 | 80×80px |
 
 ```html
 <!-- 右下角浮层（方形卡 / 竖版卡 / 视频号 / 公众号）-->
-<div id="qr-zone" data-qr-size="48" style="
-  display:none; position:absolute; right:16px; bottom:16px;
-  width:48px; height:48px; background:#141413;
-  border-radius:4px; padding:4px; box-sizing:border-box;
-"></div>
+<div style="display:none; position:absolute; right:12px; bottom:12px;
+  flex-direction:column; align-items:center; gap:4px;" id="qr-wrapper">
+  <div id="qr-zone" data-qr-size="72" style="
+    width:72px; height:72px; background:#141413;
+    border-radius:4px; padding:4px; box-sizing:border-box;
+  "></div>
+  <span style="font-size:10px; color:#6B6B6B; letter-spacing:0.05em; white-space:nowrap;">扫码阅读全文</span>
+</div>
 
-<!-- 底部深色栏（小红书 / 长图）-->
-<div id="qr-zone" data-qr-size="48" style="
-  display:none; width:100%; box-sizing:border-box;
-  background:#141413; padding:12px 16px;
+<!-- 底部 footer 内嵌（footer 右侧，适合竖版卡 / 长图）-->
+<div id="qr-zone" data-qr-size="72" style="
+  display:none; width:72px; height:72px;
+  border-radius:4px; overflow:hidden;
 "></div>
+<!-- footer 内同时加文字标签 -->
+<span style="font-size:11px; color:#6B6B6B; letter-spacing:0.05em;">扫码阅读全文</span>
 
 <!-- 侧栏内嵌（The Feature 双栏）-->
-<div id="qr-zone" data-qr-size="52" style="
+<div id="qr-zone" data-qr-size="72" style="
   display:none; margin-top:auto; padding-top:12px;
 "></div>
+<span style="font-size:10px; color:#888; margin-top:4px;">扫码阅读全文</span>
 
 <!-- 底部浅色栏（The Vintage Broadsheet）-->
-<div id="qr-zone" data-qr-size="48" style="
-  display:none; border-top:1px solid #c8bfa8;
-  padding:12px 0; margin-top:16px;
-"></div>
+<div style="display:none; border-top:1px solid #c8bfa8; padding:12px 0; margin-top:16px;
+  display:flex; align-items:center; gap:12px;" id="qr-wrapper-broadsheet">
+  <div id="qr-zone" data-qr-size="64" style="width:64px; height:64px;"></div>
+  <span style="font-size:11px; color:#8B7355; letter-spacing:0.05em;">扫码阅读全文</span>
+</div>
 ```
 
-> QR 颜色规范：`colorDark: #141413`，`colorLight: transparent`（由 screenshot.ts 控制）。
+> **重要**：`#qr-zone` 的 `display` 由 screenshot.ts 通过 `zone.style.display = 'block'` 控制显示，CSS 规则中不要设 display；初始隐藏用包裹层（`id="qr-wrapper"`）的 `display:none` 实现，或将 `#qr-zone` inline style 设为 `display:none`（screenshot.ts 会覆盖为 `block`）。QR 颜色：`colorDark: #141413`，`colorLight: #FFFFFF`。
 
 ### Step 5：保存 HTML 并通知用户
 

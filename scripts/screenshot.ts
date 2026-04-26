@@ -76,28 +76,26 @@ const outputPath = resolve(outputPng);
 const DPR = 2; // 2x Retina: 1 CSS px → 4 physical px, crisp on all modern displays
 
 async function injectQrCode(page: import('playwright').Page, url: string): Promise<void> {
-  await page.evaluate(async (u: string) => {
-    await new Promise<void>((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error('qrcode.js CDN load failed'));
-      document.head.appendChild(s);
-    }).catch(() => {}); // silent fail — screenshot continues
-    const zone = document.getElementById('qr-zone');
-    if (zone && (window as any).QRCode) {
-      zone.style.display = '';
-      const size = parseInt(zone.dataset.qrSize || '48', 10);
-      new (window as any).QRCode(zone, {
-        text: u,
-        width: size,
-        height: size,
-        colorDark: '#141413',
-        colorLight: 'transparent',
-      });
-    }
+  // Use page.addScriptTag (Playwright-native) to bypass file:// origin restrictions
+  try {
+    await page.addScriptTag({ url: 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js' });
+  } catch {
+    return; // CDN unreachable — skip QR silently, screenshot continues
+  }
+  await page.evaluate((u: string) => {
+    const zone = document.getElementById('qr-zone') as HTMLElement | null;
+    if (!zone || !(window as any).QRCode) return;
+    zone.style.display = 'block';
+    const size = parseInt(zone.dataset.qrSize || '80', 10);
+    new (window as any).QRCode(zone, {
+      text: u,
+      width: size,
+      height: size,
+      colorDark: '#141413',
+      colorLight: '#FFFFFF',
+    });
   }, url);
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(2000);
 }
 
 (async () => {
