@@ -6,7 +6,15 @@ import { existsSync } from 'fs';
 // --- Argument parsing ---
 const args = process.argv.slice(2);
 
-if (args.length === 0) {
+// Extract --url (optional, may appear anywhere in args)
+const urlIdx = args.indexOf('--url');
+const qrUrl: string | null = (urlIdx !== -1 && args[urlIdx + 1]) ? args[urlIdx + 1] : null;
+// Remove --url and its value from args so they don't interfere with positional parsing
+const cleanArgs = urlIdx !== -1
+  ? [...args.slice(0, urlIdx), ...args.slice(urlIdx + 2)]
+  : args;
+
+if (cleanArgs.length === 0) {
   console.error([
     'Usage:',
     '  bun scripts/screenshot.ts <input.html> [output.png] [width] [height]',
@@ -16,26 +24,27 @@ if (args.length === 0) {
     '  bun scripts/screenshot.ts card.html                              # → /tmp/claude-card-card.png, 1080×1080',
     '  bun scripts/screenshot.ts card.html out.png 1280 720             # fixed size',
     '  bun scripts/screenshot.ts longform.html out.png 800 --full-page  # auto-height',
+    '  bun scripts/screenshot.ts card.html out.png 760 --full-page --url https://example.com  # with QR',
   ].join('\n'));
   process.exit(1);
 }
 
-const inputHtml = args[0];
+const inputHtml = cleanArgs[0];
 
 // Determine output path
 let outputPng: string;
-// Check if args[1] looks like an output file (ends with .png/.jpg or has no extension suggesting it IS a path)
-// Simple heuristic: if args[1] exists and doesn't parse as a number and isn't --full-page, treat as output path
+// Check if cleanArgs[1] looks like an output file (ends with .png/.jpg or has no extension suggesting it IS a path)
+// Simple heuristic: if cleanArgs[1] exists and doesn't parse as a number and isn't --full-page, treat as output path
 const stem = basename(inputHtml, extname(inputHtml));
-if (args[1] && !args[1].startsWith('--') && isNaN(Number(args[1]))) {
-  outputPng = args[1];
+if (cleanArgs[1] && !cleanArgs[1].startsWith('--') && isNaN(Number(cleanArgs[1]))) {
+  outputPng = cleanArgs[1];
 } else {
   outputPng = `/tmp/claude-card-${stem}.png`;
 }
 
 // Parse width, height/--full-page
 // Remaining args after optional output path
-const remainingArgs = (args[1] === outputPng) ? args.slice(2) : args.slice(1);
+const remainingArgs = (cleanArgs[1] === outputPng) ? cleanArgs.slice(2) : cleanArgs.slice(1);
 const widthStr = remainingArgs[0];
 const heightStr = remainingArgs[1];
 
@@ -72,6 +81,30 @@ const DPR = 2; // 2x Retina: 1 CSS px → 4 physical px, crisp on all modern dis
     await page.setViewportSize({ width: w, height: 800 });
     await page.goto(`file://${inputPath}`);
     await page.waitForTimeout(3000);
+    if (qrUrl) {
+      await page.evaluate(async (url: string) => {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('qrcode.js CDN load failed'));
+          document.head.appendChild(s);
+        }).catch(() => {}); // 静默失败，截图仍然继续
+        const zone = document.getElementById('qr-zone');
+        if (zone && (window as any).QRCode) {
+          zone.style.display = '';
+          const size = parseInt((zone as HTMLElement).dataset.qrSize || '48', 10);
+          new (window as any).QRCode(zone, {
+            text: url,
+            width: size,
+            height: size,
+            colorDark: '#141413',
+            colorLight: 'transparent',
+          });
+        }
+      }, qrUrl);
+      await page.waitForTimeout(500); // 等 canvas 渲染完成
+    }
     const contentHeight = await page.evaluate(() => document.documentElement.scrollHeight);
     await page.setViewportSize({ width: w, height: contentHeight });
     await page.screenshot({ path: outputPath, fullPage: true });
@@ -80,6 +113,30 @@ const DPR = 2; // 2x Retina: 1 CSS px → 4 physical px, crisp on all modern dis
     await page.setViewportSize({ width: w, height: h });
     await page.goto(`file://${inputPath}`);
     await page.waitForTimeout(3000);
+    if (qrUrl) {
+      await page.evaluate(async (url: string) => {
+        await new Promise<void>((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('qrcode.js CDN load failed'));
+          document.head.appendChild(s);
+        }).catch(() => {}); // 静默失败，截图仍然继续
+        const zone = document.getElementById('qr-zone');
+        if (zone && (window as any).QRCode) {
+          zone.style.display = '';
+          const size = parseInt((zone as HTMLElement).dataset.qrSize || '48', 10);
+          new (window as any).QRCode(zone, {
+            text: url,
+            width: size,
+            height: size,
+            colorDark: '#141413',
+            colorLight: 'transparent',
+          });
+        }
+      }, qrUrl);
+      await page.waitForTimeout(500); // 等 canvas 渲染完成
+    }
     await page.screenshot({ path: outputPath, clip: { x: 0, y: 0, width: w, height: h } });
     console.log(`✅ Saved: ${outputPath} (${w * DPR}×${h * DPR}px @${DPR}x)`);
   }
