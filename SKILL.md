@@ -494,7 +494,7 @@ Feature 风格，需要头图区域？
 <!-- 右下角浮层（方形卡 / 竖版卡 / 视频号 / 公众号）-->
 <div style="display:none; position:absolute; right:12px; bottom:12px;
   flex-direction:column; align-items:center; gap:4px;" id="qr-wrapper">
-  <div id="qr-zone" data-qr-size="72" style="
+  <div id="qr-zone" data-qr-size="72" data-qr-light="#F5F0E8" style="
     width:72px; height:72px; background:#141413;
     border-radius:4px; padding:4px; box-sizing:border-box;
   "></div>
@@ -502,7 +502,7 @@ Feature 风格，需要头图区域？
 </div>
 
 <!-- 底部 footer 内嵌（footer 右侧，适合竖版卡 / 长图）-->
-<div id="qr-zone" data-qr-size="72" style="
+<div id="qr-zone" data-qr-size="72" data-qr-light="#F5F0E8" style="
   display:none; width:72px; height:72px;
   border-radius:4px; overflow:hidden;
 "></div>
@@ -510,7 +510,7 @@ Feature 风格，需要头图区域？
 <span style="font-size:11px; color:#6B6B6B; letter-spacing:0.05em;">扫码阅读全文</span>
 
 <!-- 侧栏内嵌（The Feature 双栏）-->
-<div id="qr-zone" data-qr-size="72" style="
+<div id="qr-zone" data-qr-size="72" data-qr-light="#F5F0E8" style="
   display:none; margin-top:auto; padding-top:12px;
 "></div>
 <span style="font-size:10px; color:#888; margin-top:4px;">扫码阅读全文</span>
@@ -518,12 +518,12 @@ Feature 风格，需要头图区域？
 <!-- 底部浅色栏（The Vintage Broadsheet）-->
 <div style="display:none; border-top:1px solid #c8bfa8; padding:12px 0; margin-top:16px;
   display:flex; align-items:center; gap:12px;" id="qr-wrapper-broadsheet">
-  <div id="qr-zone" data-qr-size="64" style="width:64px; height:64px;"></div>
+  <div id="qr-zone" data-qr-size="64" data-qr-light="#F5F0E8" style="width:64px; height:64px;"></div>
   <span style="font-size:11px; color:#8B7355; letter-spacing:0.05em;">扫码阅读全文</span>
 </div>
 ```
 
-> **重要**：`#qr-zone` 的 `display` 由 screenshot.ts 通过 `zone.style.display = 'block'` 控制显示，CSS 规则中不要设 display；初始隐藏用包裹层（`id="qr-wrapper"`）的 `display:none` 实现，或将 `#qr-zone` inline style 设为 `display:none`（screenshot.ts 会覆盖为 `block`）。QR 颜色：`colorDark: #141413`，`colorLight: #FFFFFF`。
+> **重要**：`#qr-zone` 的 `display` 由 screenshot.ts 通过 `zone.style.display = 'block'` 控制显示，CSS 规则中不要设 display；初始隐藏用包裹层（`id="qr-wrapper"`）的 `display:none` 实现，或将 `#qr-zone` inline style 设为 `display:none`（screenshot.ts 会覆盖为 `block`）。QR 颜色：`colorDark: #141413`，`colorLight` 默认 `#F5F0E8`；若卡片底色不同，在 `#qr-zone` 上设置 `data-qr-light="#你的底色"`。
 
 ### Step 5：保存 HTML 并通知用户
 

@@ -92,7 +92,7 @@ async function injectQrCode(page: import('playwright').Page, url: string): Promi
       width: size,
       height: size,
       colorDark: '#141413',
-      colorLight: '#FFFFFF',
+      colorLight: zone.dataset.qrLight || '#F5F0E8', // warm parchment; matches card bg
     });
   }, url);
   await page.waitForTimeout(2000);
